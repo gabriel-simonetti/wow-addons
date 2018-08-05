@@ -1,0 +1,10 @@
+## Interface: 70300
+## Title: AdiBags - Fishing
+## Version: 2.0
+## Author: Frost-Xavius | Carlos | Frostanon
+## X-Website: Wicked-Demise.com
+## License: http://creativecommons.org/licenses/by-nc-sa/2.5
+## LegalCode: http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode
+
+Localization.lua
+AdiBags_fishing.lua
