@@ -187,9 +187,12 @@ local function ScanCalendar()
 			for i = 1, C_Calendar.GetNumDayEvents(monthOffset, day) do		-- number of events that day ..
 				-- http://www.wowwiki.com/API_CalendarGetDayEvent
 				local title, hour, minute, calendarType, _, eventType, _, _, inviteStatus = C_Calendar.GetDayEvent(monthOffset, day, i)
-				if calendarType ~= "HOLIDAY" and calendarType ~= "RAID_LOCKOUT"
+				
+				-- 8.0 : for some events, the calendar type may be nil, filter them out
+				if calendarType and calendarType ~= "HOLIDAY" and calendarType ~= "RAID_LOCKOUT"
 					and calendarType ~= "RAID_RESET" and inviteStatus ~= CALENDAR_INVITESTATUS_INVITED
 					and inviteStatus ~= CALENDAR_INVITESTATUS_DECLINED then
+										
 					-- don't save holiday events, they're the same for all chars, and would be redundant..who wants to see 10 fishing contests every sundays ? =)
 
 					local eventDate = format("%04d-%02d-%02d", year, month, day)
@@ -217,6 +220,9 @@ local function ScanChallengeModeMaps()
 	for _, dungeonID in pairs(maps) do
 		-- deprecated in 8.0
    	-- local _, weeklyBestTime, weeklyBestLevel = C_ChallengeMode.GetMapPlayerStats(dungeonID)
+		
+		-- replaced by (but needs testing !)
+		-- local weeklyBestTime, weeklyBestLevel = C_MythicPlus.GetWeeklyBestForMap(dungeonID)
 
 		-- challengeMode.weeklyBestTime = weeklyBestTime
 		-- challengeMode.weeklyBestLevel = weeklyBestLevel

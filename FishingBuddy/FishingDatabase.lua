@@ -659,7 +659,7 @@ local function AddFishie(color, id, name, mapId, subzone, texture, quantity, qua
 			end
 		end
 		if ( FishingBuddy_Info["Fishies"][id].canopen ) then
-			table.insert(OpenThisFishId, id);
+			table.insert(FishingBuddy.OpenThisFishId, id);
 		end
 	end
 
@@ -841,7 +841,7 @@ if ( FishingBuddy.Debugging ) then
 			FishingBuddy_Info["Fishies"][id].canopen = nil;
 			local name, _, _, _, _, _, _, _,_, _ = GetItemInfo(id) ;
 			FishingBuddy.Debug("Make "..name.." openable ("..GetItemCount(id)..")");
-			table.insert(OpenThisFishId, id);
+			table.insert(FishingBuddy.OpenThisFishId, id);
 			return true;
 		end
 end

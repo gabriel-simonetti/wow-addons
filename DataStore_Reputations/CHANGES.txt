@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r43 | thaoky.altoholic@yahoo.com | 2018-08-12 13:19:00 +0000 (Sun, 12 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/DataStore_Reputations.lua
+
+Added support for paragon reputation levels
+------------------------------------------------------------------------
 r42 | thaoky.altoholic@yahoo.com | 2018-07-22 11:25:28 +0000 (Sun, 22 Jul 2018) | 1 line
 Changed paths:
    M /trunk/DataStore_Reputations.lua

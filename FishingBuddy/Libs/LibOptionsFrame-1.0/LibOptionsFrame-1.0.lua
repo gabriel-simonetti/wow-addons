@@ -159,15 +159,17 @@ end
 
 local copyfuncs = {};
 
-function OptionsLib:GetFrameInfo(f)
-    local n;
-    if ( type(f) == "string" ) then
-        n = f;
-        f = _G[f];
-    else
-        n = f:GetName();
+function OptionsLib:GetFrameInfo(framespec)
+    local n = nil;
+    if framespec then
+        if ( type(framespec) == "string" ) then
+            n = framespec;
+            framespec = _G[framespec];
+        else
+            n = framespec:GetName();
+        end
     end
-    return f, n;
+    return framespec, n;
 end
 tinsert(copyfuncs, "GetFrameInfo");
 

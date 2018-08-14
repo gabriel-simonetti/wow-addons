@@ -10,7 +10,7 @@ Licensed under a Creative Commons "Attribution Non-Commercial Share Alike" Licen
 local _
 
 local MAJOR_VERSION = "LibFishing-1.0"
-local MINOR_VERSION = 91002
+local MINOR_VERSION = 91004
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub") end
 
@@ -105,6 +105,17 @@ local CloseTradeSkill = C_TradeSkillUI.CloseTradeSkill
 local itsempty = C_TradeSkillUI.IsEmptySkillLineCategory
 local CHECKINTERVAL = 0.5
 
+function FishLib:UpdateFishingSkillData()
+    for _,info in pairs(self.continent_fishing) do
+        if (itsempty(info.cat)) then
+            local data = GetCategoryInfo(info.cat);
+            -- info.max = data.skillLineMaxLevel
+            info.rank = data.skillLineCurrentLevel
+            self.havedata = true
+        end
+    end
+end
+
 local function SkillUpdate(self, elapsed)
     if itsready() then
         self.lastUpdate = self.lastUpdate + elapsed;
@@ -117,6 +128,16 @@ local function SkillUpdate(self, elapsed)
     end
 end
 
+function FishLib:QueueUpdateFishingSkillData()
+    if not self.havedata then
+        local btn = _G[SABUTTONNAME];
+        if btn then
+            btn.skillupdate:Show()
+        end
+    end
+end
+
+-- Open up the tradeskill window and get the current data
 local function SkillInitialize(self, elapsed)
     self.lastUpdate = self.lastUpdate + elapsed;
     if self.lastUpdate > CHECKINTERVAL/2 then
@@ -139,7 +160,6 @@ local function SkillInitialize(self, elapsed)
         elseif self.state == 2 then
             if itsready() then
                 self.lib:UpdateFishingSkillData()
-                self.lib.havedata = true
                 self.state = self.state + 1
             end
         else
@@ -161,26 +181,14 @@ local function SkillInitialize(self, elapsed)
     end
 end
 
-function FishLib:UpdateFishingSkillData()
-    local already = TradeSkillFrame and TradeSkillFrame:IsShown()
-    if (not already) then
-        OpenTradeSkill(DEFAULT_SKILL.skillid)
-    end
-    for _,info in pairs(self.continent_fishing) do
-        if (itsempty(info.cat)) then
-            local data = GetCategoryInfo(info.cat);
-            -- info.max = data.skillLineMaxLevel
-            info.rank = data.skillLineCurrentLevel
-        end
-    end
-    if (not already) then
-        CloseTradeSkill()
-    end
-end
-
-function FishLib:QueueUpdateFishingSkillData()
+-- Go ahead and forcibly get the trade skill data
+function FishLib:GetTradeSkillData()
     local btn = _G[SABUTTONNAME];
     if btn then
+        if (not IsAddOnLoaded("Blizzard_TradeSkillUI")) then
+            LoadAddOn("Blizzard_TradeSkillUI");
+        end
+        btn.skillupdate:SetScript("OnUpdate", SkillInitialize);
         btn.skillupdate:Show()
     end
 end
@@ -212,9 +220,6 @@ function FishLib:GetCurrentSkill()
         end
     end
     return 0, 0, 0;
-end
-
-function FishLib:RegisterCallback()
 end
 
 -- Lure library
@@ -675,17 +680,12 @@ fishlibframe:SetScript("OnEvent", function(self, event, ...)
         self:RegisterEvent("ITEM_LOCK_CHANGED")
         self:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         self:RegisterEvent("SPELLS_CHANGED")
-        if (not IsAddOnLoaded("Blizzard_TradeSkillUI")) then
-            LoadAddOn("Blizzard_TradeSkillUI");
-        end
-        self.fl:QueueUpdateFishingSkillData()
     elseif ( event == "PLAYER_LEAVING_WORLD" ) then
         self:UnregisterEvent("ITEM_LOCK_CHANGED")
         self:UnregisterEvent("PLAYER_EQUIPMENT_CHANGED")
         self:UnregisterEvent("SPELLS_CHANGED")
     elseif (event == "TRADE_SKILL_DATA_SOURCE_CHANGED" or event == "TRADE_SKILL_LIST_UPDATE") then
-        -- If we update here, we break a lot of TradeSkill addons...
-        -- self.fl:QueueUpdateFishingSkillData()
+        self.fl:QueueUpdateFishingSkillData();
     end
 end);
 fishlibframe:Show();
@@ -1408,21 +1408,12 @@ end
 
 function FishLib:GetBaseZoneInfo()
     local mapID = self:GetCurrentMapId()
-    local zone = GetMapNameByID(mapID);
     local subzone = GetSubZoneText();
-    if ( not zone or zone == "" ) then
-        zone = UNKNOWN;
-    end
     if ( not subzone or subzone == "" ) then
-        subzone = zone;
+        subzone = UNKNOWN;
     end
 
-    -- Hack to fix issues with 4.1 and LibBabbleZone and LibTourist
-    if (zone == "City of Ironforge" ) then
-        zone = "Ironforge";
-    end
-
-    return zone, self:GetBaseSubZone(subzone);
+    return mapID, self:GetBaseSubZone(subzone);
 end
 
 -- translate zones and subzones
@@ -1726,6 +1717,19 @@ function FishLib:GetChatWindow(name)
     return DEFAULT_CHAT_FRAME, nil;
 end
 
+function FishLib:GetFrameInfo(framespec)
+    local n = nil;
+    if framespec then
+        if ( type(framespec) == "string" ) then
+            n = framespec;
+            framespec = _G[framespec];
+        else
+            n = framespec:GetName();
+        end
+    end
+    return framespec, n;
+end
+
 local function HideHolder(self)
     if not UnitAffectingCombat("player") then
         self.holder:Hide();
@@ -1791,7 +1795,7 @@ function FishLib:CreateSAButton()
 
     if (not btn.skillupdate) then
         btn.skillupdate = CreateFrame("Frame", nil, UIParent);
-        btn.skillupdate:SetScript("OnUpdate", SkillInitialize);
+        btn.skillupdate:SetScript("OnUpdate", SkillUpdate);
         btn.skillupdate.lastUpdate = 0
         btn.skillupdate.state = 0
         btn.skillupdate.lib = self

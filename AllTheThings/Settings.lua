@@ -286,7 +286,7 @@ local function createGeneralFrame(parent)
 	addObject(elm,alerts)
 	
 	local alertsFrame = CreateFrame("Frame", name .. "-" .. tabName .. "-alertsFrame", child, "ThinBorderTemplate");
-	alertsFrame:SetSize(child:GetWidth(),100)
+	alertsFrame:SetSize(child:GetWidth(),130)
 	alertsFrame:SetPoint("TOPLEFT",alerts,0,-frameSpacer);
 	alertsFrame:SetAlpha(0.3);
 	addObject(elm,alertsFrame)
@@ -365,6 +365,22 @@ local function createGeneralFrame(parent)
 		end);
 	playRemoveSound:SetPoint("TOPLEFT",playCompleteSound,-5,-frameSpacer)
 	addObject(elm,playRemoveSound)	
+	
+	-- This creates the "Play a Warning when I Enter a Cleared Difficulty" Checkbox --
+	local WarnOnClearedDifficulty = createCheckBox("Play a Warning when I Enter a Cleared Difficulty", child, function(self)
+			app.SetDataMember("WarnOnClearedDifficulty", self:GetChecked());
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("WarnOnClearedDifficulty", false));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this option if you want to hear a warning sound effect when you enter into an instance with multiple difficulties from which you have collected everything.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	WarnOnClearedDifficulty:SetPoint("TOPLEFT",playRemoveSound,0,-frameSpacer)
+	WarnOnClearedDifficulty.Label:SetWidth(500);
+	addObject(elm,WarnOnClearedDifficulty)
 	
 	-- specializations options
 	local spec = child:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
@@ -546,7 +562,7 @@ local function createAccountFrame(parent)
 	addObject(elm,basic)
 	
 	local basicFrame = CreateFrame("Frame", name .. "-" .. tabName .. "-basicFrame", child, "ThinBorderTemplate");
-	basicFrame:SetSize(child:GetWidth(),100)
+	basicFrame:SetSize(child:GetWidth(),150)
 	basicFrame:SetPoint("TOPLEFT",basic,0,-frameSpacer);
 	addObject(elm,basicFrame)
 	
@@ -612,8 +628,72 @@ local function createAccountFrame(parent)
 			GameTooltip:SetText ("Enable this setting if you want to treat recipes collected by any character on your account as Collected.\n\nIf you wish to treat only recipes known by your current character as Collected, turn this setting off.", nil, nil, nil, nil, true);
 			GameTooltip:Show();
 		end);
-	tracker:SetPoint("TOPLEFT",prof,5,-frameSpacer)
+	tracker:SetPoint("TOPLEFT",prof,0,-frameSpacer)
 	addObject(elm,tracker)
+	
+	-- Treat Factions as Collectible
+	local treatFactionsAsCollectible = createCheckBox("Treat Factions as Collectible", child, function(self)
+			app.SetDataMember("FactionsCollectible", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("FactionsCollectible", true));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat factions as collectible.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	treatFactionsAsCollectible:SetPoint("TOPLEFT",tracker,0,-frameSpacer)
+	addObject(elm,treatFactionsAsCollectible)
+	
+	-- Track Factions Account Wide
+	local factionsAccountWide = createCheckBox("Track Factions Account-Wide", child, function(self)
+			app.SetDataMember("TrackFactionsAccountWide", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("TrackFactionsAccountWide", true));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat factions collected by any character on your account as Collected.\n\nIf you wish to treat only factions known by your current character as Collected, turn this setting off.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	factionsAccountWide:SetPoint("TOPLEFT",treatFactionsAsCollectible,0,-frameSpacer)
+	addObject(elm,factionsAccountWide)
+	
+	-- Treat Flight Paths as Collectible
+	local flightPathsAsCollectible = createCheckBox("Treat Flight Paths as Collectible", child, function(self)
+			app.SetDataMember("FlightPathsCollectible", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("FlightPathsCollectible"));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat flight paths as collectible.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	flightPathsAsCollectible:SetPoint("TOPLEFT",factionsAccountWide,0,-frameSpacer)
+	addObject(elm,flightPathsAsCollectible)
+	
+	-- Track Flight Paths Account Wide mode
+	local flightPathsAccountWide = createCheckBox("Track Flight Paths Account-Wide", child, function(self)
+			app.SetDataMember("FlightPathsAccountWide", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("FlightPathsAccountWide"));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat flight paths collected by any character on your account as Collected.\n\nIf you wish to treat only flight paths known by your current character as Collected, turn this setting off.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	flightPathsAccountWide:SetPoint("TOPLEFT",flightPathsAsCollectible,0,-frameSpacer)
+	addObject(elm,flightPathsAccountWide)
 
 	-- race
 	local race = createCheckBox("Filter Items By Race", child, function(self)
@@ -649,18 +729,12 @@ local function createAccountFrame(parent)
 	
 	-- BOE
 	local boe = createCheckBox("Hide BoE Items", child, function(self)
-			app.SetDataMember("RequireBindingFilter", self:GetChecked());
-			if self:GetChecked() then
-				app.RequireBindingFilter = app.FilterItemClass_RequireBinding;
-			else
-				app.RequireBindingFilter = app.NoFilter;
-			end
-			app:RefreshData();
+			app.SetHideBOEItems(self:GetChecked());
 		end, 
 		function(self) 
 			self:SetChecked(app.GetDataMember("RequireBindingFilter"));
 		end);
-	boe:SetPoint("TOPLEFT",tracker,-5, -frameSpacer * 1.5)
+	boe:SetPoint("TOPLEFT",class,0, -frameSpacer)
 	addObject(elm,boe)
 	
 	--ignore
@@ -681,8 +755,42 @@ local function createAccountFrame(parent)
 			GameTooltip:SetText ("This ignores all filters for any items that are Bind on Equip or Bind on Account. Turn off if you only want to see BOE or BOA items for your filter settings.", nil, nil, nil, nil, true);
 			GameTooltip:Show();
 		end);
-	ignore:SetPoint("TOPLEFT",boe, child:GetWidth()/2, 0)
+	ignore:SetPoint("TOPLEFT",boe, 0, -frameSpacer)
 	addObject(elm,ignore)
+	
+	-- Treat Followers as Collectible
+	local treatFollowersAsCollectible = createCheckBox("Treat Followers as Collectible", child, function(self)
+			app.SetDataMember("FollowersCollectible", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("FollowersCollectible", true));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat Followers as collectible.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	treatFollowersAsCollectible:SetPoint("TOPLEFT",ignore,0,-frameSpacer)
+	addObject(elm,treatFollowersAsCollectible)
+	
+	-- Track Followers Account Wide
+	local factionsAccountWide = createCheckBox("Track Followers Account-Wide", child, function(self)
+			app.SetDataMember("TrackFollowersAccountWide", self:GetChecked());
+			app:RefreshData();
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("TrackFollowersAccountWide", true));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this setting if you want to treat Followers collected by any character on your account as Collected.\n\nIf you wish to treat only Followers known by your current character as Collected, turn this setting off.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	factionsAccountWide:SetPoint("TOPLEFT",treatFollowersAsCollectible,0,-frameSpacer)
+	addObject(elm,factionsAccountWide)
+	
+	
 	
 	-- seasonal
 	local seasonal = child:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge");
@@ -1973,6 +2081,35 @@ local function createDebugFrame(parent)
 		end);
 	questGiverLists:SetPoint("TOPLEFT",creatureLists,0,-frameSpacer)
 	addObject(elm,questGiverLists)
+	
+	-- This creates the "Precision" slider.
+	local precisionSlider = CreateFrame("Slider", "ATTPrecisionSlider", child, "OptionsSliderTemplate");
+	precisionSlider.tooltipText = 'Use this to customize your level of desired precision in percentage calculations.';
+	precisionSlider:SetOrientation('HORIZONTAL');
+	precisionSlider:SetWidth(300);
+	precisionSlider:SetHeight(20);
+	precisionSlider:SetValueStep(1);
+	precisionSlider:SetMinMaxValues(0, 8);
+	precisionSlider:SetObeyStepOnDrag(true);
+	precisionSlider:SetValue(app.GetDataMember("Precision", 0));
+	precisionSlider:SetPoint("TOPLEFT",questGiverLists,0,-(frameSpacer * 3))
+	_G[precisionSlider:GetName() .. 'Low']:SetText('0')
+	_G[precisionSlider:GetName() .. 'High']:SetText('8')
+	_G[precisionSlider:GetName() .. 'Text']:SetText("Level of Precision")
+	addObject(elm,precisionSlider)
+	
+	precisionSlider.Label = precisionSlider:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall");
+	precisionSlider.Label:SetPoint("BOTTOM", 0, -12);
+	precisionSlider.Label:SetText(precisionSlider:GetValue());
+	precisionSlider:SetScript("OnValueChanged", function(self, newValue)
+		if newValue == app.GetDataMember("Precision") then
+			return 1;
+		end
+		app.SetDataMember("Precision", newValue)
+		precisionSlider.Label:SetText(newValue);
+		app:UpdateWindows();
+		--app:RefreshData();
+	end);
 end
 local function createAboutFrame(parent)
 	local tabName = "About"

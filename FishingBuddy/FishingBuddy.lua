@@ -8,6 +8,7 @@ local _
 local FL = LibStub("LibFishing-1.0");
 local LO = LibStub("LibOptionsFrame-1.0");
 local LEW = LibStub("LibEventWindow-1.0");
+local HBD = LibStub("HereBeDragons-2.0")
 
 local CurLoc = GetLocale();
 
@@ -25,6 +26,7 @@ local POLES = {
     ["Mastercraft Kalu'ak Fishing Pole"] = "44050:0:0:0",
     ["Bone Fishing Pole"] = "45991:0:0:0",
     ["Jeweled Fishing Pole"] = "45992:0:0:0",
+    ["Underlight Angler"] = "133755:0:0:0",
 -- yeah, so you can't really use these (for now :-)
     ["Dwarven Fishing Pole"] = "3567:0:0:0",
     ["Goblin Fishing Pole"] = "4598:0:0:0",
@@ -58,6 +60,11 @@ local GeneralOptions = {
     ["ShowBanner"] = {
         ["text"] = FBConstants.CONFIG_SHOWBANNER_ONOFF,
         ["tooltip"] = FBConstants.CONFIG_SHOWBANNER_INFO,
+        ["v"] = 1,
+        ["default"] = true, },
+    ["SetupSkills"] = {
+        ["text"] = FBConstants.CONFIG_TRADESKILL_ONOFF,
+        ["tooltip"] = FBConstants.CONFIG_TRADESKILL_INFO,
         ["v"] = 1,
         ["default"] = true, },
     ["EnhanceFishingSounds"] = {
@@ -126,7 +133,7 @@ local function IsWardenEnabled()
     return "d", doautoloot;
 end
 
-local function ShouldAutoLoot()
+local function CustomLooting()
     local _, autoloot = IsWardenEnabled();
     return FishingBuddy.GetSettingBool("AutoLoot") and (autoloot == 1);
 end
@@ -438,6 +445,8 @@ local LastUsed = nil;
 local OpenThisFishId = {};
 local DoAutoOpenLoot = nil;
 
+FishingBuddy.OpenThisFishId = OpenThisFishId;
+
 -- handle zone markers
 local function zmto(zidx, sidx)
     if ( not zidx ) then
@@ -490,6 +499,14 @@ autopoleframe:Hide();
 
 local LastCastTime = nil;
 local FISHINGSPAN = 60;
+
+local function SetLastCastTime()
+    LastCastTime = GetTime();
+end
+
+local function ClearLastCastTime()
+    LastCastTime = nil
+end
 
 local handlerframe = CreateFrame("Frame");
 handlerframe:Hide();
@@ -750,7 +767,7 @@ FishingBuddy.GetFishieRaw = GetFishieRaw;
 local function OnNatPagleQuest()
     local i = 1;
     while GetQuestLogTitle(i) do
-        local questTitle, level, questTag, suggestedGroup, isHeader, isCollapsed, isComplete, isDaily, questID = GetQuestLogTitle(i)
+        local questTitle, level, suggestedGroup, isHeader, isCollapsed, isComplete, isDaily, questID = GetQuestLogTitle(i)
         if ( questID == 36611) then
             return true;
         end
@@ -899,22 +916,29 @@ end
 
 -- we don't want to interrupt ourselves if we're casting.
 local fishing_buff = 131474;
+local fishing_spellid = 131490;
 local current_spell_id = nil
-local current_spell_name = nil
-CaptureEvents["UNIT_SPELLCAST_CHANNEL_START"] = function(unit, name, rank, lineid, spellid)
-    current_spell_name = name
+
+CaptureEvents["UNIT_SPELLCAST_CHANNEL_START"] = function(unit, lineid, spellid)
     current_spell_id = spellid
+    if current_spell_id == fishing_spellid then
+        SetLastCastTime();
+    end
 end
 
-CaptureEvents["UNIT_SPELLCAST_CHANNEL_STOP"] = function(unit, name, rank, lineid, spellid)
+CaptureEvents["UNIT_SPELLCAST_CHANNEL_STOP"] = function(unit, lineid, spellid)
     -- we may want to wait a bit here for any buff to come back...
-    current_spell_name = nil
+    if current_spell_id == fishing_spellid then
+        SetLastCastTime();
+    end
     current_spell_id = nil
     ClearAddingLure()
 end
 
-CaptureEvents["UNIT_SPELLCAST_INTERRUPTED"] = function(unit, name, rank, lineid, spellid)
-    current_spell_name = nil
+CaptureEvents["UNIT_SPELLCAST_INTERRUPTED"] = function(unit, lineid, spellid)
+    if current_spell_id == fishing_spellid then
+        SetLastCastTime();
+    end
     current_spell_id = nil
     ClearAddingLure()
 end
@@ -938,7 +962,7 @@ CaptureEvents["UNIT_AURA"] = function(arg1)
 end
 
 local function GetCurrentSpell()
-    return current_spell_name, current_spell_id
+    return current_spell_id
 end
 FishingBuddy.GetCurrentSpell = GetCurrentSpell
 
@@ -994,7 +1018,7 @@ local function CentralCasting()
                  -- watch for fishing holes
                 FL:SaveTooltipText();
             end
-            LastCastTime = GetTime();
+            SetLastCastTime();
             autopoleframe:Show();
             local macrotext = FishingBuddy.CastAndThrow()
             if macrotext then
@@ -1152,7 +1176,7 @@ local function StopFishingMode(logout)
 end
 
 local function FishingMode()
-    local ready = ReadyForFishing();
+    local ready = ReadyForFishing() or autopoleframe:IsShown();
     if ( ready ) then
         StartFishingMode();
     else
@@ -1165,22 +1189,46 @@ local function AutoPoleCheck(self, ...)
     if (not CheckCombat() ) then
         if ( not LastCastTime or ReadyForFishing() ) then
             self:Hide();
-            LastCastTime = nil;
+            ClearLastCastTime();
+            self.x, self.y, self.instanceID = nil, nil, nil
             return;
         end
         local elapsed = (GetTime() - LastCastTime);
         if ( elapsed > FISHINGSPAN ) then
-            LastCastTime = nil;
+            ClearLastCastTime();
+            self.x, self.y, self.instanceID = nil, nil, nil
             StopFishingMode();
         elseif ( not FishingBuddy.StartedFishing ) then
             StartFishingMode();
+            self.x, self.y, self.instanceID = HBD:GetPlayerWorldPosition();
+        elseif (self.x) then
+            if (self.moving) then
+                local x, y, instanceID = HBD:GetPlayerWorldPosition();
+                local _, distance = HBD:GetWorldVector(instanceId, self.x, self.y, x, y);
+                if instanceID ~= self.instanceID or distance > 10 then
+                    LastCastTime = GetTime() - FISHINGSPAN - 1
+                end
+            elseif (self.stopped) then
+                self.x, self.y, self.instanceID = HBD:GetPlayerWorldPosition();
+                self.stopped = nil;
+            end
         end
     end
 end
+
+local function AutoPoleEvent(self, event, ...)
+    self.moving = (event == "PLAYER_STARTED_MOVING")
+    self.stopped = (event == "PLAYER_STOPPED_MOVING")
+end
+
+autopoleframe:SetScript("OnEvent", AutoPoleEvent)
 autopoleframe:SetScript("OnUpdate", AutoPoleCheck);
+autopoleframe:RegisterEvent("PLAYER_STARTED_MOVING");
+autopoleframe:RegisterEvent("PLAYER_STOPPED_MOVING");
+
 
 FishingBuddy.AreWeFishing = function()
-    return (FishingBuddy.StartedFishing ~= nil);
+    return (FishingBuddy.StartedFishing ~= nil or autopoleframe:IsShown());
 end
 
 FishingBuddy.IsSwitchClick = function(setting)
@@ -1501,9 +1549,13 @@ FishingBuddy.OnEvent = function(self, event, ...)
         end
         FishingMode();
         RunHandlers(FBConstants.INVENTORY_EVT)
-    elseif ( event == "LOOT_READY" ) then
-        local doautoloot = ShouldAutoLoot() and (GetCVarBool("autoLootDefault") ~= IsModifiedClick("AUTOLOOTTOGGLE"));
-        if ( IsFishingLoot() ) then
+    elseif ( event == "LOOT_OPENED" ) then
+        local autoLoot = ...;
+        local doautoloot = false;
+        if not autoloot and not IsModifiedClick("AUTOLOOTTOGGLE") then
+            doautoloot = CustomLooting()
+        end
+        if ( ReadyForFishing() ) then
             local poolhint = nil;
             -- How long ago did the achievement fire?
             local elapsedtime = GetTime() - trackedtime;
@@ -1514,7 +1566,7 @@ FishingBuddy.OnEvent = function(self, event, ...)
             -- if we want to autoloot, and Blizz isn't, let's grab stuff
             local checkloot = LootSlotIsItem or LootSlotHasItem;
             for index = GetNumLootItems(), 1, -1 do
-                local texture, fishie, quantity, quality, locked, qitem, questID, qactive = GetLootSlotInfo(index);
+                local texture, fishie, quantity, currency, quality, locked, qitem, questID, qactive = GetLootSlotInfo(index);
                 if (checkloot(index)) then
                     local link = GetLootSlotLink(index);
 
@@ -1595,6 +1647,11 @@ FishingBuddy.OnEvent = function(self, event, ...)
             FishingBuddy.EnhanceFishingSounds(false, false);
             FishingBuddy_Player["ResetEnhance"] = nil;
         end
+
+        -- Default is true, not saved, therefor implicitly nil
+        if (FishingBuddy_Player["Settings"]["SetupSkills"] == nil) then
+            FL:GetTradeSkillData()
+        end
     elseif ( event == "PLAYER_ALIVE" ) then
         FishingMode();
         if (FishingBuddy.GetSettingBool("CreateMacro")) then
@@ -1626,7 +1683,7 @@ FishingBuddy.OnLoad = function(self)
     self:RegisterEvent("VARIABLES_LOADED");
 
     -- we want to deal with fishing loot windows all the time
-    self:RegisterEvent("LOOT_READY");
+    self:RegisterEvent("LOOT_OPENED");
     self:RegisterEvent("LOOT_CLOSED");
 
     -- Handle item lock separately to reduce churn during world load
@@ -1648,6 +1705,7 @@ FishingBuddy.OnLoad = function(self)
                     OpenCalendar()
                 end
                 RunHandlers(FBConstants.FIRST_UPDATE_EVT);
+                FishingBuddy.WatchUpdate();
                 self.firsttime = true
             end
         end
@@ -1840,7 +1898,6 @@ if ( FishingBuddy.Debugging ) then
             for idx,info in pairs(OpenThisFishId) do
                 FishingBuddy.Debug(idx, info);
             end
-            FishingBuddy.OpenThisFishId = OpenThisFishId;
             return true;
         end
 

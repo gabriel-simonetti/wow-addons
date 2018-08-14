@@ -12,6 +12,8 @@ local private = {
 	craftQuantity = nil,
 	craftSpellId = nil,
 	craftCallback = nil,
+	preparedSpellId = nil,
+	preparedTime = 0,
 }
 
 
@@ -21,8 +23,7 @@ local private = {
 -- ============================================================================
 
 function ProfessionUtil.OnInitialize()
-	TSMAPI_FOUR.Event.Register("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellId, _, spellId73)
-		spellId = select(4, GetBuildInfo()) >= 80000 and spellId or spellId73
+	TSMAPI_FOUR.Event.Register("UNIT_SPELLCAST_SUCCEEDED", function(_, unit, _, spellId)
 		if unit ~= "player" or spellId ~= private.craftSpellId then
 			return
 		end
@@ -49,8 +50,7 @@ function ProfessionUtil.OnInitialize()
 		-- ignore profession updates from crafting something
 		TSM.Crafting.ProfessionScanner.IgnoreNextProfessionUpdates()
 	end)
-	local function SpellcastFailedEventHandler(_, unit, _, spellId, _, spellId73)
-		spellId = select(4, GetBuildInfo()) >= 80000 and spellId or spellId73
+	local function SpellcastFailedEventHandler(_, unit, _, spellId)
 		if unit ~= "player" or spellId ~= private.craftSpellId then
 			return
 		end
@@ -64,6 +64,11 @@ function ProfessionUtil.OnInitialize()
 	TSMAPI_FOUR.Event.Register("UNIT_SPELLCAST_INTERRUPTED", SpellcastFailedEventHandler)
 	TSMAPI_FOUR.Event.Register("UNIT_SPELLCAST_FAILED", SpellcastFailedEventHandler)
 	TSMAPI_FOUR.Event.Register("UNIT_SPELLCAST_FAILED_QUIET", SpellcastFailedEventHandler)
+end
+
+function ProfessionUtil.GetCurrentProfessionName()
+	local _, name, _, _, _, _, parentName = C_TradeSkillUI.GetTradeSkillLine()
+	return parentName or name
 end
 
 function ProfessionUtil.GetResultInfo(spellId)
@@ -125,14 +130,15 @@ function ProfessionUtil.GetNumCraftableFromDB(spellId)
 end
 
 function ProfessionUtil.IsEnchant(spellId)
-	local _, _, _, _, _, _, name = C_TradeSkillUI.GetTradeSkillLine()
+	local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionName()
 	if name ~= GetSpellInfo(7411) then
 		return false
 	end
 	if not strfind(C_TradeSkillUI.GetRecipeItemLink(spellId), "enchant:") then
 		return false
 	end
-	local recipeInfo = C_TradeSkillUI.GetRecipeInfo(spellId, TSMAPI_FOUR.Util.AcquireTempTable())
+	local recipeInfo = TSMAPI_FOUR.Util.AcquireTempTable()
+	assert(C_TradeSkillUI.GetRecipeInfo(spellId, recipeInfo) == recipeInfo)
 	local altVerb = recipeInfo.alternateVerb
 	TSMAPI_FOUR.Util.ReleaseTempTable(recipeInfo)
 	return altVerb and true or false
@@ -152,18 +158,34 @@ function ProfessionUtil.OpenProfession(profession)
 	CastSpellByName(profession)
 end
 
+function ProfessionUtil.PrepareToCraft(spellId, quantity)
+	quantity = min(quantity, ProfessionUtil.GetNumCraftable(spellId))
+	if quantity == 0 then
+		return
+	end
+	if ProfessionUtil.IsEnchant(spellId) then
+		quantity = 1
+	end
+
+	C_TradeSkillUI.SetRecipeRepeatCount(spellId, quantity)
+	private.preparedSpellId = spellId
+	private.preparedTime = GetTime()
+end
+
 function ProfessionUtil.Craft(spellId, quantity, useVellum, callback)
 	if private.craftSpellId then
 		callback(false, true)
 		return 0
 	end
-	local numCraftable = ProfessionUtil.GetNumCraftable(spellId)
-	quantity = min(quantity == -1 and math.huge or quantity, numCraftable)
+	quantity = min(quantity, ProfessionUtil.GetNumCraftable(spellId))
 	if quantity == 0 then
 		return 0
 	end
 	local isEnchant = ProfessionUtil.IsEnchant(spellId)
 	if isEnchant then
+		quantity = 1
+	elseif spellId ~= private.preparedSpellId or private.preparedTime == GetTime() then
+		-- We can only craft one of this item due to a bug on Blizzard's end
 		quantity = 1
 	end
 	private.craftQuantity = quantity

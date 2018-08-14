@@ -1,0 +1,8 @@
+## Interface: 70300
+## Title: Ellyb
+## Author: Ellypse & Telkostrasz
+## Version: 862aaa2
+## DefaultState: Enabled
+## LoadOnDemand: 0
+
+Ellyb.xml

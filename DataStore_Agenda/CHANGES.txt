@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r29 | thaoky.altoholic@yahoo.com | 2018-08-12 13:14:36 +0000 (Sun, 12 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/DataStore_Agenda.lua
+
+Fixed scanning of calendar events.
+------------------------------------------------------------------------
 r28 | thaoky.altoholic@yahoo.com | 2018-07-24 17:46:30 +0000 (Tue, 24 Jul 2018) | 1 line
 Changed paths:
    M /trunk/DataStore_Agenda.lua

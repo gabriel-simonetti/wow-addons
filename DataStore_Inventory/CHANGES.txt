@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r53 | thaoky.altoholic@yahoo.com | 2018-08-12 13:15:25 +0000 (Sun, 12 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/DataStore_Inventory.lua
+
+Fixed scanning of transmog sets
+------------------------------------------------------------------------
 r52 | thaoky.altoholic@yahoo.com | 2018-07-22 11:24:03 +0000 (Sun, 22 Jul 2018) | 1 line
 Changed paths:
    M /trunk/DataStore_Inventory.lua

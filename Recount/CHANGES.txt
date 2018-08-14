@@ -1,9 +1,14 @@
 ------------------------------------------------------------------------
-r1457 | Resike | 2018-07-18 23:12:09 +0000 (Wed, 18 Jul 2018) | 1 line
+r1460 | Resike | 2018-08-12 03:57:11 +0000 (Sun, 12 Aug 2018) | 1 line
 Changed paths:
-   M /trunk/Recount.toc
-   M /trunk/Tracker.lua
+   M /trunk/GUI_Report.lua
 
-- Updated for 8.0.1.
+- Report fix
+------------------------------------------------------------------------
+r1459 | Resike | 2018-08-12 03:48:44 +0000 (Sun, 12 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/Recount.lua
+
+- Class color fixes
 ------------------------------------------------------------------------
 
