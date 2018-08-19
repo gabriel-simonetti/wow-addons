@@ -10,7 +10,7 @@ Licensed under a Creative Commons "Attribution Non-Commercial Share Alike" Licen
 local _
 
 local MAJOR_VERSION = "LibFishing-1.0"
-local MINOR_VERSION = 91004
+local MINOR_VERSION = 91005
 
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub") end
 
@@ -495,6 +495,24 @@ function FishLib:WaitForBuff(buffId)
 end
 
 local spellidx = nil;
+function FishLib:GetBuff(buffId)
+    if ( buffId ) then
+        for i=1,40 do
+            local current_buff = UnitBuff("player",i);
+            if current_buff then
+                local info = {UnitBuff("player", i)}
+                local spellid = select(10, unpack(info));
+                if (buffId == spellid) then
+                    return unpack(info)
+                end
+            else
+                return nil
+            end
+        end
+    end
+    -- return nil
+end
+
 function FishLib:HasBuff(buffId, skipWait)
     if ( buffId ) then
         -- if we're waiting, assume we're going to have it
@@ -502,9 +520,10 @@ function FishLib:HasBuff(buffId, skipWait)
             return true
         else
             for i=1,40 do
-                local current_buff = UnitBuff("player",i);
+                local info = {UnitBuff("player", i)}
+                local current_buff = select(1, unpack(info))
                 if current_buff then
-                    local spellid = select(10, UnitBuff("player", i));
+                    local spellid = select(10, unpack(info));
                     if (buffId == spellid) then
                         return true;
                     end

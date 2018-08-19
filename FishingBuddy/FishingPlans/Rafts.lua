@@ -118,9 +118,6 @@ local function RaftingPlan(queue)
         local bergbuff, raftbuff, hasberg, hasraft = HasRaftBuff();
 
         local need = not (hasberg or hasraft);
-        if (not need) then
-            return false
-        end
 
         -- if we need it, but we're maintaining only, skip it
         if (GSB("BergMaintainOnly") and need) then
@@ -137,8 +134,7 @@ local function RaftingPlan(queue)
             _, itemid = C_ToyBox.GetToyInfo(RAFT_ID)
             name = RaftItems[RAFT_ID][CurLoc];
         end
-    
-        local _, _, _, _, _, _, et, _, _, _, _ = UnitBuff("player", buff);
+        local et = select(6, FL:GetBuff(buff));
         et = (et or 0) - GetTime();
         if (need or et <= RAFT_RESET_TIME) then
             tinsert(queue, {

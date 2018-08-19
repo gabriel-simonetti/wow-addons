@@ -1,4 +1,10 @@
 ------------------------------------------------------------------------
+r24 | thaoky.altoholic@yahoo.com | 2018-08-15 14:31:51 +0000 (Wed, 15 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/DataStore_Garrisons.lua
+
+Added support for war campaign missions
+------------------------------------------------------------------------
 r23 | thaoky.altoholic@yahoo.com | 2018-07-22 11:23:29 +0000 (Sun, 22 Jul 2018) | 1 line
 Changed paths:
    M /trunk/DataStore_Garrisons.toc

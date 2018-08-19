@@ -1,10 +1,11 @@
 [Welcome to TradeSkillMaster 4!](https://blog.tradeskillmaster.com/tradeskillmaster-4-released/)
 
 
-## v4.0.14 Changes
+## v4.0.17 Changes
 
-* Added workaround for issue with only being able to craft 1 of an item at a time in some cases due to a bug on Blizzard's end
-* Fixed some issues with account syncing not working properly
-* Potentially fixed WoW freeze when managing groups
+* Fixed error from the Scrapper
+* Fixed various issues with Enchanting
+* Updated the bonus IDs which TSM tracks to resolve various issues with weapons / armor
+* Fixed issue with false-positive alerts about phasing
 
 [Known Issues](http://support.tradeskillmaster.com/display/KB/TSM4+Currently+Known+Issues)

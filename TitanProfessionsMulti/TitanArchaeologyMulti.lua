@@ -63,7 +63,7 @@ local function GetButtonText(self, id)
 		BarBalanceText = " |cFF69FF69["..(ARCM - startskill).."]"
 	end
 
-	if ARCM == 800 then
+	if ARCM == 950 then
 		ARCMtext = "|cFF69FF69"..L["maximum"].."!"..SimpleText
 	elseif ARCMmax == 0 then
 		ARCMtext = "|cFFFF2e2e"..L["noprof"]

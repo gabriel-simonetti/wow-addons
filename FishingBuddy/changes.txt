@@ -1,4 +1,9 @@
-﻿Version 1.9.11
+﻿Version 1.9.12
+- Default "Partial Gear" casting to "off" (fixes surprise in Drustvar)
+- Count the fish we catch when we fish without an actual pole
+- Fix raft timer issue (CurseForge #348)
+
+Version 1.9.11
 - The watcher window behaves better when fishing without a pole.
 - Update to latest LibBabble-SubZone.
 - The quest API changed (CurseForge #342)

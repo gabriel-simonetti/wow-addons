@@ -1,4 +1,14 @@
 ------------------------------------------------------------------------
+r189 | thaoky.altoholic@yahoo.com | 2018-08-15 14:32:15 +0000 (Wed, 15 Aug 2018) | 1 line
+Changed paths:
+   M /trunk/Core.lua
+   M /trunk/Modules/Altoholic_Characters/Frames/Garrisons.lua
+   M /trunk/Modules/Altoholic_Characters/TabCharacters.lua
+   M /trunk/Modules/Altoholic_Summary/Templates/TabSummaryIcon.lua
+   M /trunk/changelog.txt
+
+8.0.006 Commit
+------------------------------------------------------------------------
 r188 | thaoky.altoholic@yahoo.com | 2018-08-12 13:23:06 +0000 (Sun, 12 Aug 2018) | 1 line
 Changed paths:
    M /trunk/Altoholic.lua
@@ -2428,11 +2438,5 @@ Changed paths:
    M /trunk/Modules/Altoholic_Achievements/TabAchievements.lua
 
 Fixed the ChatFrameEditBox issue caused by 3.3.5
-------------------------------------------------------------------------
-r88 | thaoky | 2010-04-12 18:02:22 +0000 (Mon, 12 Apr 2010) | 1 line
-Changed paths:
-   M /trunk/Modules/Altoholic_Achievements/Achievements.lua
-
-Added missing raid achievements.
 ------------------------------------------------------------------------
 

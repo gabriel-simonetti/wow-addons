@@ -914,7 +914,7 @@ function private.FSMCreate()
 	end
 	function fsmPrivate.StartCraft(context, spellId, quantity)
 		local numCrafted = TSM.Crafting.ProfessionUtil.Craft(spellId, quantity, context.craftingType ~= "craft", fsmPrivate.CraftCallback)
-		TSM:LOG_INFO("Crafting %d (requested %d) of %d", numCrafted, quantity, spellId)
+		TSM:LOG_INFO("Crafting %d (requested %s) of %d", numCrafted, quantity == math.huge and "all" or quantity, spellId)
 		if numCrafted == 0 then
 			return
 		end

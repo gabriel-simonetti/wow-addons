@@ -26,7 +26,7 @@ local configDefaults = {
 	saveFilters = false,
 }
 
-local FiltersConversion = { EMISSARY = 1, ARTIFACT_POWER = 2, LOOT = 3, ORDER_RESOURCES = 4, GOLD = 5, ITEMS = 6, TIME = 7, FACTION = 8, PVP = 9, PROFESSION = 10, PETBATTLE = 11, SORT = 12, TRACKED = 13, ZONE = 14, RARE = 15, DUNGEON = 16, WAR_SUPPLIES = 17, NETHERSHARD = 18, VEILED_ARGUNITE = 19, WAKENING_ESSENCE = 20 }
+local FiltersConversion = { EMISSARY = 1, ARTIFACT_POWER = 2, LOOT = 3, ORDER_RESOURCES = 4, GOLD = 5, ITEMS = 6, TIME = 7, FACTION = 8, PVP = 9, PROFESSION = 10, PETBATTLE = 11, SORT = 12, TRACKED = 13, ZONE = 14, RARE = 15, DUNGEON = 16, WAR_SUPPLIES = 17, NETHERSHARD = 18, VEILED_ARGUNITE = 19, WAKENING_ESSENCE = 20, AZERITE = 21, WAR_RESOURCES = 22 }
 
 local callbacks = {}
 local __filterTable
@@ -500,22 +500,24 @@ function Config:Startup()
 	local value2 = AngryWorldQuests_CharacterConfig['disabledFilters'] or 0
 	local maxFilter = 0
 	for key,index in pairs(FiltersConversion) do
-		local mask = 2^(index-1)
-		if not lastFilter or index > lastFilter then
-			if Addon.QuestFrame.Filters[key].default then
-				value = bit.band(value, bit.bnot(mask))
-			else
-				value = bit.bor(value, mask)
+		if Addon.QuestFrame.Filters[key] then
+			local mask = 2^(index-1)
+			if not lastFilter or index > lastFilter then
+				if Addon.QuestFrame.Filters[key].default then
+					value = bit.band(value, bit.bnot(mask))
+				else
+					value = bit.bor(value, mask)
+				end
 			end
-		end
-		if not lastFilter2 or index > lastFilter2 then
-			if Addon.QuestFrame.Filters[key].default  then
-				value2 = bit.band(value2, bit.bnot(mask))
-			else
-				value2 = bit.bor(value2, mask)
+			if not lastFilter2 or index > lastFilter2 then
+				if Addon.QuestFrame.Filters[key].default  then
+					value2 = bit.band(value2, bit.bnot(mask))
+				else
+					value2 = bit.bor(value2, mask)
+				end
 			end
+			if index > maxFilter then maxFilter = index end
 		end
-		if index > maxFilter then maxFilter = index end
 	end
 	AngryWorldQuests_Config['disabledFilters'] = value
 	AngryWorldQuests_Config['__filters'] = maxFilter

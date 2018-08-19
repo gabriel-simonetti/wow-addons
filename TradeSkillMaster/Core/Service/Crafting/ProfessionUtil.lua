@@ -130,7 +130,7 @@ function ProfessionUtil.GetNumCraftableFromDB(spellId)
 end
 
 function ProfessionUtil.IsEnchant(spellId)
-	local name = TSM.Crafting.ProfessionUtil.GetCurrentProfessionName()
+	local name = ProfessionUtil.GetCurrentProfessionName()
 	if name ~= GetSpellInfo(7411) then
 		return false
 	end

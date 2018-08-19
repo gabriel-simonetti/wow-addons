@@ -196,7 +196,7 @@ local CastingOptions = {
         ["tooltip"] = FBConstants.CONFIG_PARTIALGEAR_INFO,
         ["v"] = 1,
         ["parents"] = { ["EasyCast"] = "d" },
-        ["default"] = true },
+        ["default"] = false },
     ["WatchBobber"] = {
         ["text"] = FBConstants.CONFIG_WATCHBOBBER_ONOFF,
         ["tooltip"] = FBConstants.CONFIG_WATCHBOBBER_INFO,
@@ -1227,9 +1227,10 @@ autopoleframe:RegisterEvent("PLAYER_STARTED_MOVING");
 autopoleframe:RegisterEvent("PLAYER_STOPPED_MOVING");
 
 
-FishingBuddy.AreWeFishing = function()
+local function AreWeFishing()
     return (FishingBuddy.StartedFishing ~= nil or autopoleframe:IsShown());
 end
+FishingBuddy.AreWeFishing = AreWeFishing
 
 FishingBuddy.IsSwitchClick = function(setting)
     if ( not setting ) then
@@ -1555,7 +1556,7 @@ FishingBuddy.OnEvent = function(self, event, ...)
         if not autoloot and not IsModifiedClick("AUTOLOOTTOGGLE") then
             doautoloot = CustomLooting()
         end
-        if ( ReadyForFishing() ) then
+        if ( AreWeFishing() ) then
             local poolhint = nil;
             -- How long ago did the achievement fire?
             local elapsedtime = GetTime() - trackedtime;

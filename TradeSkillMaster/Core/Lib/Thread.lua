@@ -436,7 +436,7 @@ function Thread._ProcessEvent(self, event, ...)
 		assert(self._eventNames or self._eventArgs)
 		if self._eventNames[event] then
 			wipe(self._eventNames) -- only trigger the event once then clear all
-			self._eventArgs = TSMAPI_FOUR.Util.AcquireTempTable(...)
+			self._eventArgs = TSMAPI_FOUR.Util.AcquireTempTable(event, ...)
 		end
 	end
 end

@@ -103,6 +103,13 @@ function TitanPanelPerformanceButton_OnEvent(self, event, ...)
 		local count = GetNumAddOns();
 		local ActiveAddons = 0;
 		local NumOfAddons = TitanGetVar(TITAN_PERFORMANCE_ID, "NumOfAddons");
+--[[
+Urnati - This was a kludge as I believe there was a conflict with other addons Ace3
+libraries as TitanGetVar is misbehaving.  As such, I added the local NumOfAddons above
+and added the following four lines of code looking for a nil when it shouldn't return
+as the value defaults to 5.
+I also added NumOfAddons below the TitanDebug to avoid the problem later on.
+]]
 		if NumOfAddons == nil then
 			NumOfAddons = 5;
 			TitanSetVar(TITAN_PERFORMANCE_ID, "NumOfAddons", 5);

@@ -7,7 +7,7 @@
 -- Main non-UI code
 ------------------------------------------------------------
 
-PawnVersion = 2.0225
+PawnVersion = 2.0226
 
 -- Pawn requires this version of VgerCore:
 local PawnVgerCoreVersionRequired = 1.09
@@ -1174,7 +1174,7 @@ function PawnGetItemDataForInventorySlot(Slot, Unenchanted, UnitName)
 	local Item = PawnGetItemData(ItemLink)
 
 	-- Workaround for game bug with artifact off-hands
-	if Slot == INVSLOT_OFFHAND and Item.Rarity == 6 then
+	if Slot == INVSLOT_OFFHAND and Item and Item.Rarity == 6 then
 		local MainHandLink = GetInventoryItemLink("player", INVSLOT_MAINHAND)
 		if MainHandLink then 
 			Item.Level = GetDetailedItemLevelInfo(MainHandLink) or Item.Level
