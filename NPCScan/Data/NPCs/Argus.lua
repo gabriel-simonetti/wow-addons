@@ -84,7 +84,7 @@ NPCs[126419] = { -- Naroua
 		},
 	},
 	questID = 48667, -- Tracking Quest
-	vignetteName = "Naroua, King of the Forest",
+	vignetteID = 2229, -- Naroua, King of the Forest
 }
 
 -- ----------------------------------------------------------------------------
@@ -397,6 +397,7 @@ NPCs[127581] = { -- The Many-Faced Devourer
 }
 
 NPCs[127700] = { -- Squadron Commander Vishax
+	questID = 48967,
 	toys = {
 		{ itemID = 153253 }, -- S.F.E. Interceptor
 	},
@@ -420,6 +421,7 @@ NPCs[127705] = { -- Mother Rosula
 }
 
 NPCs[127706] = { -- Rezira the Seer
+	questID = 48971,
 	toys = {
 		{ itemID = 153293 } -- Sightless Eye
 	},

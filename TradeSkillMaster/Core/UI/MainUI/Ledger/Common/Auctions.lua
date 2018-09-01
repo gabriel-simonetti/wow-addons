@@ -71,7 +71,7 @@ function private.DrawAuctionsPage()
 		:Select("player")
 	wipe(private.characters)
 	tinsert(private.characters, ALL)
-	for _, character in private.query:Iterator(true) do
+	for _, character in private.query:Iterator() do
 		tinsert(private.characters, character)
 	end
 
@@ -121,7 +121,7 @@ function private.DrawAuctionsPage()
 			:SetStyle("padding.right", 8)
 			:AddChild(TSMAPI_FOUR.UI.NewElement("Input", "searchInput")
 				:SetStyle("margin.right", 16)
-				:SetHintText("Filter by Keyword")
+				:SetHintText(L["Filter by Keyword"])
 				:SetStyle("hintTextColor", "#e2e2e2")
 				:SetStyle("hintJustifyH", "LEFT")
 				:SetStyle("font", TSM.UI.Fonts.MontserratMedium)

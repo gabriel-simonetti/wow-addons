@@ -46,9 +46,9 @@ AllTheThings.Locales.enUS = {
 	["ERROR_UNKNOWN"] = "An unknown error occured.";
 
 	["ITEM_ID_ADDED"] = "%s (%d) was added to your collection.";
-	["ITEM_ID_ADDED_MISSING"] = "%s (%d) was added to your collection. Not found in the database. Please report to the ATT Discord!";
+	--["ITEM_ID_ADDED_MISSING"] = "%s (%d) was added to your collection. Not found in the database. Please report to the ATT Discord!";
 	["ITEM_ID_ADDED_SHARED"] = "%s (%d) [+%d] were added to your collection.";
-	["ITEM_ID_ADDED_SHARED_MISSING"] = "%s (%d) [+%d] were added to your collection. Not found in the database. Please report to the ATT Discord!";
+	--["ITEM_ID_ADDED_SHARED_MISSING"] = "%s (%d) [+%d] were added to your collection. Not found in the database. Please report to the ATT Discord!";
 	["ITEM_ID_REMOVED"] = "%s (%d) was removed from your collection.";
 	["ITEM_ID_REMOVED_SHARED"] = "%s (%d) [+%d] were removed from your collection.";
 
@@ -273,6 +273,7 @@ AllTheThings.Locales.enUS = {
 	["FILTER_ID_ICONS"] = {
 		[27] = "Interface\\Icons\\inv_wand_02",								-- Wands
 		[102] = "Interface\\Icons\\INV_Misc_Toy_10",						-- Toy
+		[200] = "Interface\\Icons\\inv_scroll_05",							-- Recipes
 	},
 
 	-- These need to be localized manually.
@@ -290,7 +291,6 @@ AllTheThings.Locales.enUS = {
 		[-12] = "Interface\\Icons\\Ability_Warlock_DemonicEmpowerment", 		-- East entrance demons
 		[-13] = "Interface\\Icons\\Achievement_Reputation_Ogre", 				-- North entrance ogres
 		[-14] = "Interface\\Icons\\INV_Misc_Head_Elf_02", 						-- West entrace elves
-		[-15] = "Interface\\Icons\\inv_scroll_05",								-- Recipes
 		[-16] = "Interface\\Icons\\Spell_Shadow_DeathScream",					-- Rare
 		[-17] = "Interface\\Icons\\inv_misc_book_07", 							-- Quests
 		[-18] = "Interface\\Icons\\icon_scenarios",								-- Scenarios
@@ -446,7 +446,7 @@ AllTheThings.Locales.enUS = {
 		[-223] = "Interface\\Icons\\achievement_quests_completed_daily_07",		-- Daily
 		[-224] = "Interface\\Icons\\ClassIcon_DemonHunter", 					-- Demon Hunter
 		[-225] = "Interface\\ICONS\\INV_Misc_Map02",							-- World Drop
-		[-228] = "Interface\\Minimap\\Tracking\\Flightmaster",					-- Flight Master
+		[-228] = "Interface\\Minimap\\Tracking\\Flightmaster",					-- Flight Paths
 		[-297] = "Interface\\Icons\\inv_letter_17", 							-- Mailbox
 		[-299] = "Interface\\Icons\\achievement_garrisonquests_1000", 			-- Missions
 		[-304] = "Interface\\Icons\\INV_BannerPVP_03",							-- Battlegrounds
@@ -824,7 +824,6 @@ AllTheThings.Locales.enUS = {
 		[-12] = DUNGEON_FLOOR_DIREMAUL5.." [East - Demons]",					-- Warpwood Quarter [East - Demon]
 		[-13] = DUNGEON_FLOOR_DIREMAUL1.." [North - Ogres]",					-- Gordok Commons [North - Ogres]
 		[-14] = DUNGEON_FLOOR_DIREMAUL2.." [West - Elves]",						-- Capital Gardens [West - Elves]
-		[-15] = AUCTION_CATEGORY_RECIPES, 										-- Recipes
 		[-16] = BATTLE_PET_BREED_QUALITY4, 										-- Rares
 		[-17] = TRACKER_HEADER_QUESTS, 											-- Quests
 		[-18] = SCENARIOS, 														-- Scenarios
@@ -1622,6 +1621,7 @@ AllTheThings.Locales.enUS = {
 
 		[-100001] = ITEM_QUALITY6_DESC, 				-- Artifact
 		[-100002] = OPTION_TOOLTIP_ANIMATION,			-- PLACE_HOLDER
+		[-100003] = C_Map.GetAreaInfo(8900),	-- The Zocali
 
 -- Custom Subzone Names that we can't pull from the API because Blizz hates us
   -- Val'sharah
@@ -1906,6 +1906,26 @@ AllTheThings.Locales.enUS = {
 		[277343] = "Interface\\Icons\\inv_misc_treasurechest04d",
 		[277344] = "Interface\\Icons\\inv_misc_treasurechest04d",
 		[277349] = "Interface\\Icons\\inv_misc_treasurechest04d",
+		[277373] = "Interface\\Icons\\INV_MISC_HERB_06",
+		[276488] = "Interface\\Icons\\Ability_Rogue_CannonballBarrage",
+		[278313] = "Interface\\Icons\\INV_Misc_NotePicture1c",
+		[281646] = "Interface\\Icons\\INV_Potion_147",
+		[290537] = "Interface\\Icons\\INV_Misc_ScrollUnrolled02",
+		[280727] = "Interface\\Icons\\INV_Misc_ScrollUnrolled02",
+		[246562] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999999] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999998] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999997] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999996] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999995] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999994] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999993] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999992] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999991] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999990] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999989] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999988] = "Interface\\Icons\\Garrison_SilverChest",
+		[9999987] = "Interface\\Icons\\Garrison_SilverChest",
 	};
 	["OBJECT_ID_NAMES"] = {
 		[31] = "Old Lion Statue",
@@ -1977,6 +1997,7 @@ AllTheThings.Locales.enUS = {
 		[181336] = "Flame of Orgrimmar",
 		[181337] = "Flame of Thunder Bluff",
 		[181748] = "Blood Crystal",
+		[181756] = "Battered Ancient Book",
 		[181889] = "Wanted Poster",
 		[182032] = "Galaen's Journal",
 		[182115] = "Wanted Poster",
@@ -2445,6 +2466,16 @@ AllTheThings.Locales.enUS = {
 		[292675] = "A Damp Scroll",
 		[292676] = "A Damp Scroll",
 		[292677] = "A Damp Scroll",
+		[288641] = "WANTED: Gryphon 'Nappers",
+		[281230] = "Formal Invitation",
+		[281647] = "Posted Notice",
+		[281551] = "Help Wanted Poster",
+		[277373] = "Glimmering Seaweed",
+		[276488] = "Azurite Cannonball",
+		[278313] = "Sternly Worded Letter",
+		[281646] = "Honey Vat",
+		[290537] = "Help Wanted",
+		[280727] = "Charred Note",
 		[288596] = select(1,GetAchievementCriteriaInfo(12851,9)), -- Cache of Secrets
 		[284454] = select(1,GetAchievementCriteriaInfo(12851,7)), -- Da White Shark's Bounty
 		[281898] = select(1,GetAchievementCriteriaInfo(12851,6)), -- Dazar's Forgotten Chest
@@ -2498,6 +2529,19 @@ AllTheThings.Locales.enUS = {
 		[282666] = select(1,GetAchievementCriteriaInfo(12942,25)), --  Urn of Agussu
 		[277333] = select(1,GetAchievementCriteriaInfo(12941,8)), --  Ancient Sarcophagus
 		[277897] = select(1,GetAchievementCriteriaInfo(12941,12)), --  Seething Cache
+		[9999999] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Start with this one and go down the list when entering.
+		[9999998] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999997] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999996] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999995] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999994] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999993] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999992] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999991] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999990] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999989] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999988] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
+		[9999987] = "Treasure Chest",	-- Because we have to make up on our own objectID's until information rolls in.  Continue on down.
 	};
 
 	-- Saved Instance Name => Dungeon Journal Instance Name Converter

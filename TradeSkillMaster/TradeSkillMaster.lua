@@ -18,7 +18,7 @@ local APP_INFO_REQUIRED_KEYS = { "version", "lastSync", "addonVersions", "messag
 local LOGOUT_TIME_WARNING_THRESHOLD_MS = 20
 do
 	-- show a message if we were updated
-	if GetAddOnMetadata("TradeSkillMaster", "Version") ~= "v4.0.17" then
+	if GetAddOnMetadata("TradeSkillMaster", "Version") ~= "v4.2.2" then
 		message("TSM was just updated and may not work properly until you restart WoW.")
 	end
 end
@@ -62,9 +62,12 @@ end
 -- [41] removed global.coreOptions.groupPriceSource
 -- [42] removed global.vendoringOptions.defaultMerchantTab
 -- [43] removed global.coreOptions.{moveDelay,bankUITab}, removed global.auctioningOptions.{openAllBags,ahRowDisplay}, removed global.craftingOptions.{profitPercent,questSmartCrafting,queueSort}, removed global.destroyingOptions.{logDays,timeFormat}, removed global.vendoringOptions.{autoSellTrash,qsHideGrouped,qsHideSoulbound,qsBatchSize,defaultPage,qsMaxMarketValue,qsDestroyValue}, removed profile.coreOptions.{cleanBags,cleanBank,cleanReagentBank,cleanGuildBank}
+-- [44] changed global.internalData.{mainUIFrameContext,auctionUIFrameContext,craftingUIFrameContext,destroyingUIFrameContext,mailingUIFrameContext,vendoringUIFrameContext,bankingUIFrameContext} default (added "scale = 1")
+-- [45] added char.internalData.auctionSaleHints
+-- [46] added global.shoppingOptions.{buyoutConfirm,buyoutAlertSource}
 
-local settingsInfo = {
-	version = 43,
+local SETTINGS_INFO = {
+	version = 46,
 	global = {
 		debug = {
 			chatLoggingEnabled = { type = "boolean", default = false, lastModifiedVersion = 19 },
@@ -73,13 +76,13 @@ local settingsInfo = {
 			vendorItems = { type = "table", default = {}, lastModifiedVersion = 10 },
 			appMessageId = { type = "number", default = 0, lastModifiedVersion = 10 },
 			destroyingHistory = { type = "table", default = {}, lastModifiedVersion = 10 },
-			mainUIFrameContext = { type = "table", default = { width = 948, height = 757, centerX = 0, centerY = 0, page = 1 }, lastModifiedVersion = 17 },
-			auctionUIFrameContext = { type = "table", default = { width = 830, height = 587, centerX = -300, centerY = 100, page = 1 }, lastModifiedVersion = 17 },
-			craftingUIFrameContext = { type = "table", default = { width = 820, height = 587, centerX = -200, centerY = 0, page = 1 }, lastModifiedVersion = 17 },
-			destroyingUIFrameContext = { type = "table", default = { width = 296, height = 442, centerX = 0, centerY = 0 }, lastModifiedVersion = 17 },
-			mailingUIFrameContext = { type = "table", default = { width = 560, height = 500, centerX = -200, centerY = 0, page = 1 }, lastModifiedVersion = 28 },
-			vendoringUIFrameContext = { type = "table", default = { width = 560, height = 500, centerX = -200, centerY = 0, page = 1 }, lastModifiedVersion = 29 },
-			bankingUIFrameContext = { type = "table", default = { width = 325, height = 600, centerX = 500, centerY = 0, tab = "Warehousing", isOpen = true }, lastModifiedVersion = 31 },
+			mainUIFrameContext = { type = "table", default = { width = 948, height = 757, centerX = 0, centerY = 0, page = 1, scale = 1 }, lastModifiedVersion = 44 },
+			auctionUIFrameContext = { type = "table", default = { width = 830, height = 587, centerX = -300, centerY = 100, page = 1, scale = 1 }, lastModifiedVersion = 44 },
+			craftingUIFrameContext = { type = "table", default = { width = 820, height = 587, centerX = -200, centerY = 0, page = 1, scale = 1 }, lastModifiedVersion = 44 },
+			destroyingUIFrameContext = { type = "table", default = { width = 296, height = 442, centerX = 0, centerY = 0, scale = 1 }, lastModifiedVersion = 44 },
+			mailingUIFrameContext = { type = "table", default = { width = 560, height = 500, centerX = -200, centerY = 0, page = 1, scale = 1 }, lastModifiedVersion = 44 },
+			vendoringUIFrameContext = { type = "table", default = { width = 560, height = 500, centerX = -200, centerY = 0, page = 1, scale = 1 }, lastModifiedVersion = 44 },
+			bankingUIFrameContext = { type = "table", default = { width = 325, height = 600, centerX = 500, centerY = 0, tab = "Warehousing", isOpen = true, scale = 1 }, lastModifiedVersion = 44 },
 			taskListUIFrameContext = { type = "table", default = { topRightX = -220, topRightY = -10, minimized = false, isOpen = true }, lastModifiedVersion = 33 },
 		},
 		coreOptions = {
@@ -135,6 +138,8 @@ local settingsInfo = {
 			maxDeSearchLvl = { type = "number", default = 735, lastModifiedVersion = 10 },
 			maxDeSearchPercent = { type = "number", default = 100, lastModifiedVersion = 23 },
 			pctSource  = { type = "string", default = "dbmarket", lastModifiedVersion = 12 },
+			buyoutConfirm  = { type = "boolean", default = false, lastModifiedVersion = 46 },
+			buyoutAlertSource  = { type = "string", default = "min(100000g, 200% dbmarket)", lastModifiedVersion = 46 },
 		},
 		sniperOptions = {
 			sniperSound = { type = "string", default = TSM.CONST.NO_SOUND_KEY, lastModifiedVersion = 10 },
@@ -240,6 +245,7 @@ local settingsInfo = {
 			auctionPrices = { type = "table", default = {}, lastModifiedVersion = 10 },
 			auctionMessages = { type = "table", default = {}, lastModifiedVersion = 10 },
 			craftingCooldowns = { type = "table", default = {}, lastModifiedVersion = 27 },
+			auctionSaleHints = { type = "table", default = {}, lastModifiedVersion = 45 },
 		},
 	},
 	sync = {
@@ -272,7 +278,7 @@ function TSM.OnInitialize()
 	end
 
 	-- load settings
-	local db, upgradeObj = TSMAPI_FOUR.Settings.New("TradeSkillMasterDB", settingsInfo)
+	local db, upgradeObj = TSMAPI_FOUR.Settings.New("TradeSkillMasterDB", SETTINGS_INFO)
 	TSM.db = db
 	if upgradeObj then
 		local prevVersion = upgradeObj:GetPrevVersion()
@@ -280,7 +286,7 @@ function TSM.OnInitialize()
 			-- migrate all the old settings to their new namespaces
 			for key, value in upgradeObj:RemovedSettingIterator() do
 				local scopeType, scopeKey, _, settingKey = upgradeObj:GetKeyInfo(key)
-				for namespace, namespaceInfo in pairs(settingsInfo[scopeType]) do
+				for namespace, namespaceInfo in pairs(SETTINGS_INFO[scopeType]) do
 					if namespaceInfo[settingKey] then
 						TSM.db:Set(scopeType, scopeKey, namespace, settingKey, value)
 					end
@@ -791,7 +797,7 @@ function private.TestPriceSource(price)
 		return
 	end
 
-	TSM:Printf(L["A custom price of %s for %s evaluates to %s."], "|cff99ffff"..price.."|r", link, TSMAPI_FOUR.Money.ToString(value))
+	TSM:Printf(L["A custom price of %s for %s evaluates to %s."], "|cff99ffff"..price.."|r", link, TSM.Money.ToString(value))
 end
 
 function private.ChangeProfile(targetProfile)
@@ -830,6 +836,9 @@ function private.DebugSlashCommandHandler(arg)
 	elseif arg == "logout" then
 		TSM.AddonTestLogout()
 		private.OnLogout()
+	elseif arg == "clearitemdb" then
+		TSMItemInfoDB = nil
+		ReloadUI()
 	end
 end
 

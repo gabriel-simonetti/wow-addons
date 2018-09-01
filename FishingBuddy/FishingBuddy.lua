@@ -1524,6 +1524,12 @@ local function DumpZoneEvents()
     ZoneEvents = nil;
 end
 
+-- Return true if we might be looting from a barrel.
+local function LegionBarrel()
+    local continent, _ = FL:GetCurrentMapContinent();
+    return (continent == 8 and FL:GetMainHandItem(true) == FBConstants.UNDERLIGHT_ANGLER);
+end
+
 FishingBuddy.OnEvent = function(self, event, ...)
 --	  local line = event;
 --	  for idx=1,select("#",...) do
@@ -1551,17 +1557,19 @@ FishingBuddy.OnEvent = function(self, event, ...)
         FishingMode();
         RunHandlers(FBConstants.INVENTORY_EVT)
     elseif ( event == "LOOT_OPENED" ) then
-        local autoLoot = ...;
-        local doautoloot = false;
-        if not autoloot and not IsModifiedClick("AUTOLOOTTOGGLE") then
-            doautoloot = CustomLooting()
-        end
-        if ( AreWeFishing() ) then
+        if ( IsFishingLoot() or LegionBarrel() ) then
+            local autoLoot = ...;
+            local doautoloot = false;
             local poolhint = nil;
+
             -- How long ago did the achievement fire?
             local elapsedtime = GetTime() - trackedtime;
             if ( elapsedtime < TRACKING_DELAY ) then
                 poolhint = true;
+            end
+
+            if not autoloot and not IsModifiedClick("AUTOLOOTTOGGLE") then
+                doautoloot = CustomLooting()
             end
 
             -- if we want to autoloot, and Blizz isn't, let's grab stuff

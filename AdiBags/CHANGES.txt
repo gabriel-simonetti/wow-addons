@@ -1,18 +1,14 @@
-tag d1c61ae600346b193411746dd9894c887ad4f828 v1.9.10
+tag 8288d72182a1c46f7fd08d0d72145ed572c26346 v1.9.11
 Author:	Talyrius <contact@talyrius.net>
-Date:	Wed Aug 15 03:01:40 2018 -0700
+Date:	Fri Aug 17 08:41:01 2018 -0700
 
-Tagging as v1.9.10.
+Tagging as v1.9.11.
 
-commit 2d532c8c97e3c25ab0479eaa1fb5d3fa6482a2dc
-Author: Talyrius <contact@talyrius.net>
-Date:   Wed Aug 15 02:55:27 2018 -0700
+commit 3a6e77981efa0a334a24a6abc6e17bf739737272
+Author: Steffen <smb@users.noreply.github.com>
+Date:   Fri Aug 17 17:33:16 2018 +0200
 
-    Eliminated LibItemUpgradeInfo-1.0 as a dependency.
-
-commit 8352c66187b6d5e4bf3c0a31da580a2fd405f3a8
-Author: Talyrius <contact@talyrius.net>
-Date:   Wed Aug 15 02:34:07 2018 -0700
-
-    ItemLevel: added item level range for level 120 characters.
+    Fix for strmatch errors with empty call stack in BugGrabber handling (#293)
+    
+    Fixes #289.
 

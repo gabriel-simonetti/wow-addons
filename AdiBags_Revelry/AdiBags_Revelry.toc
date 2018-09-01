@@ -1,0 +1,33 @@
+# © Copyright 2016-2017 Josh "Werdbooty" Coyle (upsidedownrabbit@gmail.com)
+#
+# AdiBags - Revelry! is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This addon is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with the addon. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
+#
+# This file is part of AdiBags - Revelry!.
+
+## Interface: 70200
+
+## Title: AdiBags • |r|cFF008C80Revelry!|r |cffffffff[v0.9k]|r
+## Notes: Add filters for holidays to AdiBags.
+## Version: 0.9k
+
+## Author: Rigsby@Dalaran
+## X-Date: 5.12.2017
+## X-License: GNU General Public License Version 3
+## X-Category: Bags & Inventory
+
+## Dependencies: AdiBags
+
+Localization.lua
+data\HolidayTables.lua
+Revelry_Core.lua

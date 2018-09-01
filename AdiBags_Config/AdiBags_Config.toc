@@ -3,8 +3,8 @@
 ## Title: AdiBags Configuration
 ## Notes: Adirelle's bag addon.
 ## Author: Adirelle
-## Version: v1.9.10
-## X-Date: 2018-08-15T9:55:27Z
+## Version: v1.9.11
+## X-Date: 2018-08-17T15:33:16Z
 ## X-Part-Of: AdiBags
 ## LoadOnDemand: 1
 ## Dependencies: AdiBags

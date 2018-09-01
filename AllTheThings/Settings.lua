@@ -2052,6 +2052,21 @@ local function createDebugFrame(parent)
 	uncollected:SetPoint("TOPLEFT",child:GetWidth()/2,-10)
 	addObject(elm,uncollected)
 	
+	-- This creates the "Show Coordinates in the Tooltip" checkBox 
+	local showCoordinatesInTooltip = createCheckBox("Show Coordinates In Tooltip", child, function(self)
+			app.SetDataMember("ShowCoordinatesInTooltip", self:GetChecked());
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("ShowCoordinatesInTooltip", false));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this option if you want to see coordinates in the tooltip when hovering over an entry in the mini list.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	showCoordinatesInTooltip:SetPoint("TOPLEFT",uncollected,0,-frameSpacer)
+	addObject(elm,showCoordinatesInTooltip)
+	
 	-- This creates the "Show Creature List" checkBox 
 	local creatureLists = createCheckBox("Show Creature List", child, function(self)
 			app.SetDataMember("ShowCreatures", self:GetChecked());
@@ -2064,7 +2079,7 @@ local function createDebugFrame(parent)
 			GameTooltip:SetText ("Enable this option if you want to see the full list of creatures in the tooltip.\n\nNOTE: We only use this option for zone drops and other extremely long NPC ID lists.", nil, nil, nil, nil, true);
 			GameTooltip:Show();
 		end);
-	creatureLists:SetPoint("TOPLEFT",uncollected,0,-frameSpacer)
+	creatureLists:SetPoint("TOPLEFT",showCoordinatesInTooltip,0,-frameSpacer)
 	addObject(elm,creatureLists)
 	
 	-- This creates the "Show Quest Givers" checkBox 
@@ -2082,6 +2097,36 @@ local function createDebugFrame(parent)
 	questGiverLists:SetPoint("TOPLEFT",creatureLists,0,-frameSpacer)
 	addObject(elm,questGiverLists)
 	
+	-- This creates the "Report Completed Quests" checkBox 
+	local reportCompletedQuests = createCheckBox("Report Completed Quests", child, function(self)
+			app.SetDataMember("DebugCompletedQuests", self:GetChecked());
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("DebugCompletedQuests", false));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this option if you want to see the Quest ID for any quest you complete immediately after it happens. (For reporting bugs, trackings purposes, etc)", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	reportCompletedQuests:SetPoint("TOPLEFT",questGiverLists,0,-frameSpacer)
+	addObject(elm,reportCompletedQuests)
+	
+	-- This creates the "Only Report Unsorted Quests" checkBox 
+	local reportOnlyUnsortedQuests = createCheckBox("Only Report Unsorted Quests", child, function(self)
+			app.SetDataMember("OnlyReportUnsortedQuests", self:GetChecked());
+		end, 
+		function(self) 
+			self:SetChecked(app.GetDataMember("OnlyReportUnsortedQuests", false));
+		end,
+		function(self)
+			GameTooltip:SetOwner (self, "ANCHOR_RIGHT");
+			GameTooltip:SetText ("Enable this option if you only want to see the Quest ID for any quest you complete that isn't already listed in the addon.", nil, nil, nil, nil, true);
+			GameTooltip:Show();
+		end);
+	reportOnlyUnsortedQuests:SetPoint("TOPLEFT",reportCompletedQuests,5,-frameSpacer)
+	addObject(elm,reportOnlyUnsortedQuests)
+	
 	-- This creates the "Precision" slider.
 	local precisionSlider = CreateFrame("Slider", "ATTPrecisionSlider", child, "OptionsSliderTemplate");
 	precisionSlider.tooltipText = 'Use this to customize your level of desired precision in percentage calculations.';
@@ -2092,7 +2137,7 @@ local function createDebugFrame(parent)
 	precisionSlider:SetMinMaxValues(0, 8);
 	precisionSlider:SetObeyStepOnDrag(true);
 	precisionSlider:SetValue(app.GetDataMember("Precision", 0));
-	precisionSlider:SetPoint("TOPLEFT",questGiverLists,0,-(frameSpacer * 3))
+	precisionSlider:SetPoint("TOPLEFT",reportOnlyUnsortedQuests,0,-(frameSpacer * 3))
 	_G[precisionSlider:GetName() .. 'Low']:SetText('0')
 	_G[precisionSlider:GetName() .. 'High']:SetText('8')
 	_G[precisionSlider:GetName() .. 'Text']:SetText("Level of Precision")

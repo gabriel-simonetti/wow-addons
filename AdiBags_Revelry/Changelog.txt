@@ -1,0 +1,61 @@
+REVELRY!
+=======
+
+v0.9kk
+=====
+• corrected item tables for the Glowcap Festival
+
+v0.9k
+=====
+• updated localization (French)
+• corrected an issue where Filled Festive Mug wasn't sorting properly.
+• minor cosmetic changes
+
+v0.9jj
+=====
+• corrected an issue with tables listing incorrect items.
+
+v0.9j
+=====
+• added support for Darkmoon Faire playing cards.
+• added "Brew of the Month" Club support.
+• updated localization file.
+
+v0.9h
+=====
+• added Brewfest filters.
+• updated localization file (thanks to yuk6196@Curse for the Korean translation!).
+
+v0.9e-f
+=====
+Hotfix:
+• added Wolvar Orphan Whistle and Oracle Orphan Whistle (Children's Week).
+• added filter for Bad Example achievement by request (Children's Week).
+• corrected a small issue with some filter descriptions not showing properly.
+
+v0.9d
+=====
+Add a wealth of new options to your AdiBags filters, with a focus on holidays, micro-holidays, and the Darkmoon Faire. Items have been carefully categorized with flexibility in mind, hopefully allowing players lots of freedom in how they organize their filters.
+ 
+Holidays and Micro-Holidays:
+ - Narrow your filters down to just one specific holiday, or choose to filter several holidays at once.
+ - Merge holidays and micro-holidays together to keep things simple, or keep them in separate sections.
+ - Choose to filter only the items you want. Only want to see quest-related stuff? Or maybe you're interested in just the pets? Not an issue, there are plenty of filters to choose from. And if you don't see the one you want, let me know in the comments below.
+
+ In Detail Categorization: 
+ - Everything from items required by achievements, to vanity weapons, to quest rewards. Great for collectors.
+ - Special or unique items are given their own categories, so as to play well with any other AdiBags filters you may have going.
+ - Only items that are relevant to holidays will be filtered. Aside from some quests requiring common items, anything that can be found, won, or purchased at other times of the year won't be considered.
+ - Don't forget your Festive Mug!
+ 
+Darkmoon Faire Support:
+ - Sayge's fortunes, crunchy frogs, ride tickets, and more!
+ - Support for breadcrumb quests that require several items unique to the Darkmoon Faire.
+ - Full range of cosmetic and vanity gear.
+ - Pets, mounts, toys, and all the other collectable goodies you can only find on Darkmoon Island.
+ - Supports Darkmoon Faire achievements.
+ 
+Please Note: 
+This is a work in progress and not all holidays are currently supported. More will be added in future updates as absent holidays come around on the calendar. If there is a particular holiday you'd like to see added right away, drop a note in the comments. Further to this, there is a lot of information to sort through when collating each holiday, and errors in item id numbers or names are bound to happen. Any assistance in this matter would be greatly appreciated.
+ 
+ 

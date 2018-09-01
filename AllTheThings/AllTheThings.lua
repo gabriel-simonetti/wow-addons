@@ -448,7 +448,7 @@ GameTooltipModel:SetBackdrop(backdrop);
 GameTooltipModel:SetBackdropBorderColor(1, 1, 1, 1);
 GameTooltipModel:SetBackdropColor(0, 0, 0, 1);
 GameTooltipModel.Models = {};
-GameTooltipModel.Model = CreateFrame("DressUpModel", nil, GameTooltipModel);
+GameTooltipModel.Model = CreateFrame("PlayerModel", nil, GameTooltipModel);
 GameTooltipModel.Model:SetPoint("TOPLEFT", GameTooltipModel ,"TOPLEFT", 4, -4)
 GameTooltipModel.Model:SetPoint("BOTTOMRIGHT", GameTooltipModel ,"BOTTOMRIGHT", -4, 4)
 GameTooltipModel.Model:SetFacing(MODELFRAME_DEFAULT_ROTATION);
@@ -733,35 +733,37 @@ local progress_colors = setmetatable({[1] = "ff15abff"}, {
 		return color;
 	end
 });
+local function GetNumberWithZeros(number, desiredLength)
+	if desiredLength > 0 then
+		local str = tostring(number);
+		local length = string.len(str);
+		local pos = string.find(str,"[.]");
+		if not pos then
+			str = str .. ".";
+			for i=desiredLength,1,-1 do
+				str = str .. "0";
+			end
+		else
+			local totalExtra = desiredLength - (length - pos);
+			for i=totalExtra,1,-1 do
+				str = str .. "0";
+			end
+			if totalExtra < 1 then
+				str = string.sub(str, 1, pos + desiredLength);
+			end
+		end
+		return str;
+	else
+		return tostring(floor(number));
+	end
+end
 local function GetProgressColor(p)
 	return progress_colors[p];
 end
 local function GetProgressColorText(progress, total)
 	if total and total > 0 then
-		local desiredLength, str = app.GetDataMember("Precision", 0);
 		local percent = progress / total;
-		if desiredLength > 0 then
-			str = tostring(percent * 100);
-			local length = string.len(str);
-			local pos = string.find(str,"[.]");
-			if not pos then
-				str = str .. ".";
-				for i=desiredLength,1,-1 do
-					str = str .. "0";
-				end
-			else
-				local totalExtra = desiredLength - (length - pos);
-				for i=totalExtra,1,-1 do
-					str = str .. "0";
-				end
-				if totalExtra < 1 then
-					str = string.sub(str, 1, pos + desiredLength);
-				end
-			end
-		else
-			str = tostring(floor(percent * 100));
-		end
-		return "|c" .. GetProgressColor(percent) .. tostring(progress) .. " / " .. tostring(total) .. " (" .. str .. "%) |r";
+		return "|c" .. GetProgressColor(percent) .. tostring(progress) .. " / " .. tostring(total) .. " (" .. GetNumberWithZeros(percent * 100, app.GetDataMember("Precision", 0)) .. "%) |r";
 	end
 	return "---";
 end
@@ -940,9 +942,21 @@ end
 -- Quest Completion Lib
 local DirtyQuests = {};
 local CompletedQuests = setmetatable({}, {__newindex = function (t, key, value)
-  --print("Completed Quest ID #" .. key);
-  DirtyQuests[key] = true;
-  rawset(t, key, value);
+	DirtyQuests[key] = true;
+	rawset(t, key, value);
+	
+	if GetDataMember("DebugCompletedQuests") then
+		if GetDataMember("OnlyReportUnsortedQuests") then
+			local searchResults = app.SearchForQuestID(key);
+			if searchResults and #searchResults > 0 then
+				return true;
+			end
+			
+			print("Completed Quest ID #" .. key .. " NOT FOUND IN ATT!");
+		else
+			print("Completed Quest ID #" .. key);
+		end
+	end
 end});
 local IsQuestFlaggedCompleted = function(questID)
 	return questID and CompletedQuests[questID];
@@ -1186,7 +1200,7 @@ local function GetNoteForGroup(group)
 	if group then
 		local key = group.key;
 		if key then
-			return GetDataSubSubMember("Notes", key, group[key]);
+			return group[key] and GetDataSubSubMember("Notes", key, group[key]);
 		else
 			return GetDataSubMember("Notes", BuildSourceTextForChat(group, 0));
 		end
@@ -1368,7 +1382,7 @@ local function GetGearSetCache()
 	return db;
 end
 local function GetProgressText(data)
-	if data.total and data.total > 0 then
+	if data.total and (data.total > 1 or (data.total > 0 and not data.collectible)) then
 		return GetProgressColorText(data.progress or 0, data.total);
 	elseif data.trackable then
 		return GetCompletionIcon(data.saved);
@@ -1409,8 +1423,13 @@ local function GetRelativeDifficulty(group, difficultyID)
 					end
 				end
 			end
+			return false;
 		end
-		if group.parent then return GetRelativeDifficulty(group.parent, difficultyID); end
+		if group.parent then
+			return GetRelativeDifficulty(group.parent, difficultyID);
+		else
+			return true;
+		end
 	end
 end
 local function GetRelativeField(group, field, value)
@@ -1780,6 +1799,7 @@ local function SearchForMissingItemNames(group)
 	end
 	return arr; 
 end
+app.SearchForQuestID = SearchForQuestID;
 app.SearchForItemID = SearchForItemID;
 app.SearchForSourceID = SearchForSourceID;
 app.SearchForItemLink = SearchForItemLink;
@@ -2056,7 +2076,7 @@ local function OpenMiniList(field, id, label)
 			
 			local found = false;
 			local difficultyID = select(3, GetInstanceInfo());
-			if difficultyID and difficultyID > 0 then
+			if difficultyID and difficultyID > 0 and popout.data.g then
 				for _, row in ipairs(popout.data.g) do
 					if (row.difficultyID and row.difficultyID == difficultyID)
 						or (row.difficulties and containsValue(row.difficulties, difficultyID)) then
@@ -2160,12 +2180,32 @@ local function OpenMiniListForCurrentProfession(manual, refresh)
 			-- Cache Learned Spells
 			local skillCache = fieldCache["spellID"];
 			if skillCache then
+				local currentCategoryID, categories = -1, {};
+				local categoryIDs = { C_TradeSkillUI.GetCategories() };
+				for i = 1,#categoryIDs do
+					currentCategoryID = categoryIDs[i];
+					local categoryData = C_TradeSkillUI.GetCategoryInfo(currentCategoryID);
+					if categoryData then
+						if not categories[currentCategoryID] then
+							app.SetDataSubMember("Categories", currentCategoryID, categoryData.name);
+							categories[currentCategoryID] = true;
+						end
+					end
+				end
+				
 				-- Cache learned recipes
 				local learned = 0;
-				
 				local recipeIDs = C_TradeSkillUI.GetAllRecipeIDs();
 				for i = 1,#recipeIDs do
 					if C_TradeSkillUI.GetRecipeInfo(recipeIDs[i], spellRecipeInfo) then
+						currentCategoryID = spellRecipeInfo.categoryID;
+						if not categories[currentCategoryID] then
+							local categoryData = C_TradeSkillUI.GetCategoryInfo(currentCategoryID);
+							if categoryData then
+								app.SetDataSubMember("Categories", currentCategoryID, categoryData.name);
+								categories[currentCategoryID] = true;
+							end
+						end
 						if spellRecipeInfo.learned then
 							SetTempDataSubMember("CollectedSpells", spellRecipeInfo.recipeID, 1);
 							if not GetDataSubMember("CollectedSpells", spellRecipeInfo.recipeID) then
@@ -2687,120 +2727,103 @@ local function AttachTooltipRawSearchResults(self, listing, group, paramA, param
 			end
 		end
 		
-		local itemID;
-		local link = select(2, self:GetItem());
-		if link then itemID = (tonumber(select(2, strsplit(":", link)) or "0") or 0); end
-		
-		-- Merge the Search Results into a compact list.
-		-- TODO: Potentially optimize this?
-		group = MergeSearchResults(group, itemID);
-		if group then
-			-- If this is a Merged group, then we need to recalculate totals since it isn't directly from the DB
-			if group.merged then RecalculateGroupTotals(group); end
+		if group and #group > 0 then
+			local itemID;
+			local link = select(2, self:GetItem());
+			if link then itemID = (tonumber(select(2, strsplit(":", link)) or "0") or 0); end
 			
-			-- If the group has relative contents, we should show that information
-			if group.g and not group.hideText and GetDataMember("ShowContents") 
-				and (app.RecursiveClassAndRaceFilter(group) or GetDataMember("IgnoreAllFilters")) then
-				local parents = {};
-				local items = {};
-				for i,j in ipairs(group.g) do
-					if not j.hideText and app.GroupRequirementsFilter(j) and app.GroupFilter(j) then
-						if not contains(parents, j.parent) then tinsert(parents, j.parent); end
-						
-						local right = nil;
-						if j.total and j.total > 0 then
-							if (j.progress / j.total) < 1 or GetDataMember("ShowCompletedGroups") then
-								right = GetProgressColorText(j.progress, j.total);
-							end
-						elseif j.collectible then
-							if j.collected or (j.trackable and j.saved) then
-								if GetDataMember("ShowCollectedItems") then
-									right = L("COLLECTED_ICON");
+			local cache = MergeSearchResults(group, itemID);
+			if cache then
+				RecalculateGroupTotals(cache);
+				if cache.g and GetDataMember("ShowContents") then
+					local items = {};
+					for i,j in ipairs(cache.g) do
+						if not j.hideText and app.GroupRequirementsFilter(j) and app.GroupFilter(j) then
+							local right = nil;
+							if j.total and (j.total > 1 or (j.total > 0 and not j.collectible)) then
+								if (j.progress / j.total) < 1 or GetDataMember("ShowCompletedGroups") then
+									if j.itemID and j.itemID ~= itemID  then
+										if j.total > 1 or not j.collectible then
+											right = GetProgressColorText(j.progress, j.total);
+										end
+									else
+										right = GetProgressColorText(j.progress, j.total);
+									end
 								end
-							else
-								right = L("NOT_COLLECTED_ICON");
-							end
-						elseif j.trackable then
-							if j.saved then
-								if GetDataMember("ShowCollectedItems") then
-									right = L("COMPLETE_ICON");
+							elseif not j.itemID or (j.itemID and j.itemID ~= itemID) then
+								if j.collectible then
+									if j.collected or (j.trackable and j.saved) then
+										if GetDataMember("ShowCollectedItems") then
+											right = L("COLLECTED_ICON");
+										end
+									else
+										right = L("NOT_COLLECTED_ICON");
+									end
+								elseif j.trackable then
+									if j.saved then
+										if GetDataMember("ShowCollectedItems") then
+											right = L("COMPLETE_ICON");
+										end
+									elseif app.ShowIncompleteQuests(j) then
+										right = L("NOT_COLLECTED_ICON");
+									end
+								elseif j.visible then
+									right = "---";
 								end
-							elseif app.ShowIncompleteQuests(j) then
-								right = L("NOT_COLLECTED_ICON");
 							end
-						elseif j.visible then
-							right = "---";
+							
+							-- If there's progress to display, then let's summarize a bit better.
+							if right then
+								-- If this group has a droprate, add it to the display.
+								if j.dr then right = "|c" .. GetProgressColor(j.dr * 0.01) .. tostring(j.dr) .. "%|r " .. right; end
+								
+								-- If this group has specialization requirements, let's attempt to show the specialization icons.
+								local specs = GetDataMember("ShowLootSpecializationRequirements") and j.specs;
+								if specs and #specs > 0 then
+									table.sort(specs);
+									for i,spec in ipairs(specs) do
+										local id, name, description, icon, role, class = GetSpecializationInfoByID(spec);
+										if class == app.Class then right = "|T" .. icon .. ":0|t " .. right; end
+									end
+								end
+								
+								-- Insert into the display.
+								tinsert(items, { "  " .. (j.icon and ("|T" .. j.icon .. ":0|t") or "") .. (j.text or RETRIEVING_DATA), right });
+							end
 						end
-						
-						-- If there's progress to display, then let's summarize a bit better.
-						if right then
-							-- If this group has a droprate, add it to the display.
-							if j.dr then right = "|c" .. GetProgressColor(j.dr * 0.01) .. tostring(j.dr) .. "%|r " .. right; end
-							
-							-- If this group has specialization requirements, let's attempt to show the specialization icons.
-							local specs = GetDataMember("ShowLootSpecializationRequirements") and j.specs;
-							if specs and #specs > 0 then
-								table.sort(specs);
-								for i,spec in ipairs(specs) do
-									local id, name, description, icon, role, class = GetSpecializationInfoByID(spec);
-									if class == app.Class then right = "|T" .. icon .. ":0|t " .. right; end
-								end
+					end
+				
+					if #items > 0 then
+						self:AddLine("Contains:");
+						if #items < 25 then
+							for i,pair in ipairs(items) do
+								self:AddDoubleLine(pair[1], pair[2]);
 							end
-							
-							-- Insert into the display.
-							tinsert(items, { "  " .. (j.icon and ("|T" .. j.icon .. ":0|t") or "") .. (j.text or RETRIEVING_DATA), right });
+						else
+							for i=1,math.min(25, #items) do
+								self:AddDoubleLine(items[i][1], items[i][2]);
+							end
+							local more = #items - 25;
+							if more > 0 then self:AddLine("And " .. more .. " more..."); end
 						end
 					end
 				end
 				
-				if #items > 0 then
-					self:AddLine("Contains:");
-					if #items < 5 then
-						for i,pair in ipairs(items) do
-							self:AddDoubleLine(pair[1], pair[2]);
+				-- If the user has Show Collection Progress turned on.
+				if self:NumLines() > 0 and GetDataMember("ShowProgress") then
+					local rightSide = _G[self:GetName() .. "TextRight1"];
+					if rightSide then
+						if cache.total and (cache.total > 1 or (cache.total > 0 and not cache.collectible)) then
+							rightSide:SetText(GetProgressColorText(cache.progress, cache.total));
+						elseif cache.collectible then
+							rightSide:SetText(GetCollectionText(cache.collected));
+						elseif cache.trackable then
+							rightSide:SetText(GetCompletionText(cache.saved));
+						else
+							rightSide:SetText("---");
 						end
-					elseif #parents < 2 then
-						for i=1,math.min(5, #items) do
-							self:AddDoubleLine(items[i][1], items[i][2]);
-						end
-						local more = #items - 5;
-						if more > 0 then self:AddLine("And " .. more .. " more..."); end
-					else
-						for i,j in ipairs(parents) do
-							local title = "  ";
-							if j.parent then
-								if j.parent.parent then
-									if j.creatureID then
-										title = title .. (j.parent.parent.icon and ("|T" .. j.parent.parent.icon .. ":0|t") or "") .. (j.parent.parent.text or RETRIEVING_DATA) .. " -> " .. (j.text or RETRIEVING_DATA) .. " (" .. (j.parent.text or RETRIEVING_DATA) .. ")";
-									else
-										title = title .. (j.parent.parent.icon and ("|T" .. j.parent.parent.icon .. ":0|t") or "") .. (j.parent.parent.text or RETRIEVING_DATA) .. " -> " .. (j.parent.text or RETRIEVING_DATA);
-									end
-								else
-									title = title .. (j.parent.icon and ("|T" .. j.parent.icon .. ":0|t") or "") .. (j.text or RETRIEVING_DATA) .. " (" .. (j.parent.text or RETRIEVING_DATA) .. ")";
-								end
-							else
-								title = title .. (j.icon and ("|T" .. j.icon .. ":0|t") or "") .. (j.text or RETRIEVING_DATA);
-							end
-							self:AddDoubleLine(title, GetProgressColorText(j.progress, j.total));
-						end
+						rightSide:Show();
 					end
-				end
-			end
-			
-			-- If the user has Show Collection Progress turned on.
-			if self:NumLines() > 0 and GetDataMember("ShowProgress") then
-				local rightSide = _G[self:GetName() .. "TextRight1"];
-				if rightSide then
-					if group.total and (group.total > 1 or (group.total > 0 and not group.collectible)) then
-						rightSide:SetText(GetProgressColorText(group.progress, group.total));
-					elseif group.collectible then
-						rightSide:SetText(GetCollectionText(group.collected));
-					elseif group.trackable then
-						rightSide:SetText(GetCompletionText(group.saved));
-					else
-						rightSide:SetText("---");
-					end
-					rightSide:Show();
 				end
 			end
 		end
@@ -3292,6 +3315,29 @@ app.CreateArtifact = function(id, t)
 	return setmetatable(constructor(id, t, "artifactID"), app.BaseArtifact);
 end
 
+-- Category Lib
+app.BaseCategory = {
+	__index = function(t, key)
+		if key == "key" then
+			return "categoryID";
+		elseif key == "f" then
+			return 200;
+		elseif key == "text" then
+			local info = app.GetDataSubMember("Categories", t.categoryID);
+			if info then return info; end
+			return "Open your Professions to Cache";
+		elseif key == "icon" then
+			return "Interface/ICONS/INV_Garrison_Blueprints1";
+		else
+			-- Something that isn't dynamic.
+			return table[key];
+		end
+	end
+};
+app.CreateCategory = function(id, t)
+	return createInstance(constructor(id, t, "categoryID"), app.BaseCategory);
+end
+
 -- Character Class Lib
 app.BaseCharacterClass = {
 	__index = function(t, key)
@@ -3563,6 +3609,12 @@ end
 		36,		-- Burning Steppes (All of Eastern Kingdoms)
 		100,	-- Hellfire Peninsula (All of Outland)
 		118,	-- Icecrown (All of Northrend)
+		422,	-- Dread Wastes (All of Pandaria)
+		525,	-- Frostfire Ridge (All of Draenor)
+		630,	-- Azsuna (All of Broken Isles)
+		882,	-- Mac'Aree (All of Argus)
+		862,	-- Zuldazar (All of Zuldazar)
+		896,	-- Drustvar (All of Kul Tiras)
 	};
 	local cachedNodeData = {};
 	app.CacheFlightPathData = function()
@@ -4210,7 +4262,9 @@ app.BaseMap = {
 		elseif key == "link" then
 			return t.achievementID and GetAchievementLink(t.achievementID);
 		elseif key == "icon" then
-			return t.achievementID and select(10, GetAchievementInfo(t.achievementID));
+			return t.achievementID and select(10, GetAchievementInfo(t.achievementID)) or "Interface/ICONS/INV_Misc_Map09";
+		elseif key == "lvl" then
+			return select(1, C_Map.GetMapLevels(t.mapID));
 		else
 			-- Something that isn't dynamic.
 			return table[key];
@@ -4473,9 +4527,11 @@ app.BaseProfession = {
 		if key == "key" then
 			return "requireSkill";
 		elseif key == "text" then
-			return select(1, GetSpellInfo(t.spellID));
+			if t.requireSkill == 129 then return select(1, GetSpellInfo(t.spellID)); end
+			return C_TradeSkillUI.GetTradeSkillDisplayName(t.requireSkill);
 		elseif key == "icon" then
-			return select(3, GetSpellInfo(t.spellID));
+			if t.requireSkill == 129 then return select(3, GetSpellInfo(t.spellID)); end
+			return C_TradeSkillUI.GetTradeSkillTexture(t.requireSkill);
 		elseif key == "spellID" then
 			return SkillIDToSpellID[t.requireSkill];
 		else
@@ -6528,29 +6584,27 @@ local function RowOnEnter(self)
 		if GetDataMember("ShowProgress") then
 			local style = GameTooltip:NumLines() < 1;
 			if style then
-				if not reference.total or reference.total < 1 then
-					if reference.collectible then
-						GameTooltip:AddDoubleLine(self.Label:GetText(), GetCollectionText(reference.collected));
-					elseif reference.trackable then
-						GameTooltip:AddDoubleLine(self.Label:GetText(), "---");
-					else
-						GameTooltip:AddLine(self.Label:GetText());
-					end
-				else
+				if reference.total and (reference.total > 1 or (reference.total > 0 and not reference.collectible)) then
 					GameTooltip:AddDoubleLine(self.Label:GetText(), GetProgressColorText(reference.progress, reference.total));
+				elseif reference.collectible then
+					GameTooltip:AddDoubleLine(self.Label:GetText(), GetCollectionText(reference.collected));
+				elseif reference.trackable then
+					GameTooltip:AddDoubleLine(self.Label:GetText(), GetCompletionText(reference.saved));
+				else
+					GameTooltip:AddDoubleLine(self.Label:GetText(), "---");
 				end
 				if reference.trackable then
 					GameTooltip:AddDoubleLine("Quest Progress", GetCompletionText(reference.saved));
 				end
 			else
-				if not reference.total or reference.total < 1 then
-					if reference.collectible then
-						GameTooltipTextRight1:SetText(GetCollectionText(reference.collected));
-					elseif reference.trackable then
-						GameTooltipTextRight1:SetText(GetCompletionText(reference.saved));
-					end
-				else
+				if reference.total and (reference.total > 1 or (reference.total > 0 and not reference.collectible)) then
 					GameTooltipTextRight1:SetText(GetProgressColorText(reference.progress, reference.total));
+				elseif reference.collectible then
+					GameTooltipTextRight1:SetText(GetCollectionText(reference.collected));
+				elseif reference.trackable then
+					GameTooltipTextRight1:SetText(GetCompletionText(reference.saved));
+				elseif string.len(GameTooltipTextRight1:GetText() or "") < 1 then
+					GameTooltipTextRight1:SetText("---");
 				end
 				GameTooltipTextRight1:Show();
 			end
@@ -6576,7 +6630,8 @@ local function RowOnEnter(self)
 				GameTooltip:AddLine(title, 1, 1, 1);
 			end
 		end
-		if reference.lvl then GameTooltip:AddDoubleLine(L("REQUIRES_LEVEL"), tostring(reference.lvl)); end
+		local lvl = reference.lvl or 0;
+		if lvl > 1 then GameTooltip:AddDoubleLine(L("REQUIRES_LEVEL"), tostring(lvl)); end
 		--if reference.b then GameTooltip:AddDoubleLine("Binding", tostring(reference.b)); end
 		if reference.requireSkill then
 			GameTooltip:AddDoubleLine(L("REQUIRES"), tostring(GetSpellInfo(SkillIDToSpellID[reference.requireSkill] or 0)));
@@ -6614,6 +6669,30 @@ local function RowOnEnter(self)
 		if reference.setSubHeaderID then GameTooltip:AddDoubleLine(L("SET_ID"), tostring(reference.setSubHeaderID)); end
 		if reference.description and GetDataMember("ShowDescriptions") then GameTooltip:AddLine(reference.description, 0.4, 0.8, 1, 1); end
 		if reference.mapID and GetDataMember("ShowMapID") then GameTooltip:AddDoubleLine(L("MAP_ID"), tostring(reference.mapID)); end
+		if reference.coords and app.GetDataMember("ShowCoordinatesInTooltip") then
+			local j = 0;
+			for i,coord in ipairs(reference.coords) do
+				local x = coord[1];
+				local y = coord[2];
+				local str;
+				local mapID = coord[3];
+				if mapID then
+					str = tostring(mapID);
+					if mapID == app.GetCurrentMapID() then str = str .. "*"; end
+					str = str .. ": ";
+				else
+					str = "";
+				end
+				GameTooltip:AddDoubleLine(j == 0 and "Coordinates" or " ", 
+					str.. GetNumberWithZeros(math.floor(x * 10) * 0.1, 1) .. ", " .. GetNumberWithZeros(math.floor(y * 10) * 0.1, 1), 1, 1, 1, 1, 1, 1);
+				j = j + 1;
+			end
+		end
+		if reference.coord and app.GetDataMember("ShowCoordinatesInTooltip") then
+			GameTooltip:AddDoubleLine("Coordinate",
+				GetNumberWithZeros(math.floor(reference.coord[1] * 10) * 0.1, 1) .. ", " .. 
+				GetNumberWithZeros(math.floor(reference.coord[2] * 10) * 0.1, 1), 1, 1, 1, 1, 1, 1);
+		end
 		if reference.bonusID and GetDataMember("ShowBonusID") then GameTooltip:AddDoubleLine("Bonus ID", tostring(reference.bonusID)); end
 		if reference.modID and GetDataMember("ShowModID") then GameTooltip:AddDoubleLine("Mod ID", tostring(reference.modID)); end
 		if reference.dr then GameTooltip:AddDoubleLine(L("DROP_RATE"), "|c" .. GetProgressColor(reference.dr * 0.01) .. tostring(reference.dr) .. "%|r"); end
@@ -7500,6 +7579,320 @@ end
 -- Create the Primary Collection Window (this allows you to save the size and location)
 app:GetWindow("Prime");
 app:GetWindow("Unsorted");
+--[[
+-- split a string
+function string:split(delimiter)
+  local result = { }
+  local from  = 1
+  local delim_from, delim_to = string.find( self, delimiter, from  )
+  while delim_from do
+    table.insert( result, string.sub( self, from , delim_from-1 ) )
+    from  = delim_to + 1
+    delim_from, delim_to = string.find( self, delimiter, from  )
+  end
+  table.insert( result, string.sub( self, from  ) )
+  return result
+end
+app:GetWindow("Debugger", UIParent, function(self)
+	if not self.initialized then
+		self.initialized = true;
+		self.data = {
+			['text'] = "Debugger",
+			['icon'] = "Interface\\Icons\\Achievement_Dungeon_GloryoftheRaider.blp", 
+			["description"] = "This builds a list of all of the quests you have encountered recently.",
+			['visible'] = true, 
+			['expanded'] = true,
+			['back'] = 1,
+			['g'] = {},
+		};
+		self.rawData = {};
+		self.Clear = function(self)
+			self.rawData = {};
+			app.SetDataMember("Debugger", self.rawData);
+			wipe(self.data.g);
+			self:Update();
+		end
+		self.CreateObject = function(self, t)
+			local s = {};
+			if t[1] then
+				-- array
+				for i,o in ipairs(t) do
+					table.insert(s, self:CreateObject(o));
+				end
+				return s;
+			else
+				for key,value in pairs(t) do
+					s[key] = value;
+				end
+				if t.g then
+					s.g = {};
+					for i,o in ipairs(t.g) do
+						table.insert(s.g, self:CreateObject(o));
+					end
+					t = s;
+				end
+				if t.mapID then
+					t = app.CreateMap(t.mapID, t);
+				elseif t.objectID then
+					t = app.CreateObject(t.objectID, t);
+				elseif t.followerID then
+					t = app.CreateFollower(t.followerID, t);
+				elseif t.recipeID then
+					t = app.CreateRecipe(t.recipeID, t);
+				elseif t.professionID then
+					t = app.CreateProfession(t.professionID, t);
+				elseif t.spellID then
+					t = app.CreateSpell(t.spellID, t);
+				elseif t.categoryID then
+					t = app.CreateCategory(t.categoryID, t);
+				elseif t.achievementID then
+					t = app.CreateAchievement(t.achievementID, t);
+				elseif t.questID then
+					t = app.CreateQuest(t.questID, t);
+				elseif t.itemID then
+					t = app.CreateItem(t.itemID, t);
+				end
+				t.visible = true;
+				t.expanded = true;
+				return t;
+			end
+		end
+		self.MergeObject = function(self, g, t)
+			local key = t.key;
+			if not key then
+				if t.mapID then
+					key = "mapID";
+				elseif t.objectID then
+					key = "objectID";
+				elseif t.followerID then
+					key = "followerID";
+				elseif t.recipeID then
+					key = "recipeID";
+				elseif t.professionID then
+					key = "professionID";
+				elseif t.spellID then
+					key = "spellID";
+				elseif t.categoryID then
+					key = "categoryID";
+				elseif t.achievementID then
+					key = "achievementID";
+				elseif t.questID then
+					key = "questID";
+				elseif t.itemID then
+					key = "itemID";
+				end
+			end
+			for i,o in ipairs(g) do
+				if o[key] == t[key] then
+					t.visible = nil;
+					t.expanded = nil;
+					if t.g then
+						local tg = t.g;
+						t.g = nil;
+						if o.g then
+							for j,k in ipairs(tg) do
+								self:MergeObject(o.g, k);
+							end
+						else
+							o.g = tg;
+						end
+					end
+					for key,value in pairs(t) do
+						o[key] = value;
+					end
+					return true;
+				end
+			end
+			table.insert(g, t);
+			return true;
+		end
+		
+		-- Setup Event Handlers and register for events
+		-- /script AllTheThings:GetWindow("Debugger"):Show();
+		-- /script AllTheThings:GetWindow("Debugger"):Clear();
+		self.events = {};
+		self:SetScript("OnEvent", function(self, e, ...)
+			print(e, ...);
+			if e == "PLAYER_LOGIN" then
+				self.rawData = app.GetDataMember("Debugger", {});
+				self.data.g = self:CreateObject(self.rawData);
+				self:Update();
+			elseif e == "ZONE_CHANGED_NEW_AREA" or e == "NEW_WMO_CHUNK" then
+				-- Bubble Up the Maps
+				local mapInfo, info;
+				local mapID = app.GetCurrentMapID();
+				if mapID then
+					repeat
+						mapInfo = C_Map.GetMapInfo(mapID);
+						if mapInfo then
+							info = { ["mapID"] = mapInfo.mapID, ["g"] = { info } };
+							mapID = mapInfo.parentMapID
+						end
+					until not mapInfo or not mapID;
+					
+					self:MergeObject(self.data.g, self:CreateObject(info));
+					self:MergeObject(self.rawData, info);
+					self:Update();
+				end
+			elseif e == "TRADE_SKILL_LIST_UPDATE" then
+				local tradeSkillID = AllTheThings.GetTradeSkillLine();
+				local spellRecipeInfo = {};
+				local currentCategoryGroup, currentCategoryID, categories = {}, -1, {};
+				local categoryList, rawGroups = {}, {};
+				local categoryIDs = { C_TradeSkillUI.GetCategories() };
+				for i = 1,#categoryIDs do
+					currentCategoryID = categoryIDs[i];
+					local categoryData = C_TradeSkillUI.GetCategoryInfo(currentCategoryID);
+					if categoryData then
+						if not categories[currentCategoryID] then
+							local category = { 
+								["parentCategoryID"] = categoryData.parentCategoryID,
+								["categoryID"] = currentCategoryID,
+								["name"] = categoryData.name,
+								["g"] = {}
+							};
+							categories[currentCategoryID] = category;
+							table.insert(categoryList, category);
+						end
+					end
+				end
+				
+				local recipeIDs = C_TradeSkillUI.GetAllRecipeIDs();
+				for i = 1,#recipeIDs do
+					if C_TradeSkillUI.GetRecipeInfo(recipeIDs[i], spellRecipeInfo) then
+						currentCategoryID = spellRecipeInfo.categoryID;
+						if not categories[currentCategoryID] then
+							local categoryData = C_TradeSkillUI.GetCategoryInfo(currentCategoryID);
+							if categoryData then
+								local category = { 
+									["parentCategoryID"] = categoryData.parentCategoryID,
+									["categoryID"] = currentCategoryID,
+									["name"] = categoryData.name, 
+									["g"] = {}
+								};
+								categories[currentCategoryID] = category;
+								table.insert(categoryList, category);
+							end
+						end
+						table.insert(categories[currentCategoryID].g, {
+							["recipeID"] = spellRecipeInfo.recipeID,
+							["requireSkill"] = tradeSkillID,
+							["name"] = spellRecipeInfo.name,
+						});
+					end
+				end
+				
+				-- Make each category parent have children. (not as gross as that sounds)
+				for i=#categoryList,1,-1 do
+					local category = categoryList[i];
+					if category.parentCategoryID then
+						local parentCategory = categories[category.parentCategoryID];
+						category.parentCategoryID = nil;
+						if parentCategory then
+							table.insert(parentCategory.g, 1, category); 
+							table.remove(categoryList, i);
+						end
+					end
+				end
+				
+				-- Now merge the categories into the raw groups table.
+				for i,category in ipairs(categoryList) do
+					table.insert(rawGroups, category);
+				end
+				local info = { 
+					["professionID"] = tradeSkillID, 
+					["icon"] = C_TradeSkillUI.GetTradeSkillTexture(tradeSkillID),
+					["name"] = C_TradeSkillUI.GetTradeSkillDisplayName(tradeSkillID),
+					["g"] = rawGroups
+				};
+				self:MergeObject(self.data.g, self:CreateObject(info));
+				self:MergeObject(self.rawData, info);
+				self:Update();
+			elseif e == "QUEST_DETAIL" then
+				local questID = GetQuestID();
+				if questID == 0 then return false; end
+				local questStartItemID = ...;
+				local mapID = app.GetCurrentMapID();
+				local npc = "questnpc";
+				local guid = UnitGUID(npc);
+				if not guid then
+					npc = "npc";
+					guid = UnitGUID(npc);
+				end
+				local type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid;
+				if guid then type, zero, server_id, instance_id, zone_uid, npc_id, spawn_uid = strsplit("-",guid); end
+				print("QUEST_DETAIL", questStartItemID, " => Quest #", questID, type, npc_id);
+				
+				local rawGroups = {};
+				for i=1,GetNumQuestRewards(),1 do
+					local link = GetQuestItemLink("reward", i);
+					if link then table.insert(rawGroups, { ["itemID"] = GetItemInfoInstant(link) }); end
+				end
+				for i=1,GetNumQuestChoices(),1 do
+					local link = GetQuestItemLink("choice", i);
+					if link then table.insert(rawGroups, { ["itemID"] = GetItemInfoInstant(link) }); end
+				end
+				for i=1,GetNumQuestLogRewardSpells(questID),1 do
+					local texture, name, isTradeskillSpell, isSpellLearned, hideSpellLearnText, isBoostSpell, garrFollowerID, genericUnlock, spellID = GetQuestLogRewardSpell(i, questID);
+					if garrFollowerID then
+						table.insert(rawGroups, { ["followerID"] = garrFollowerID, ["name"] = name });
+					elseif spellID then
+						if isTradeskillSpell then
+							table.insert(rawGroups, { ["recipeID"] = spellID, ["name"] = name });
+						else
+							table.insert(rawGroups, { ["spellID"] = spellID, ["name"] = name });
+						end
+					end
+				end
+				
+				local px, py = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player"):GetXY();
+				local info = { ["questID"] = questID, ["g"] = rawGroups, ["coord"] = { px * 100, py * 100 } };
+				print(px, py);
+				if questStartItemID and questStartItemID > 0 then info.itemID = questStartItemID; end
+				if npc_id then
+					npc_id = tonumber(npc_id);
+					if type == "GameObject" then
+						info = { ["objectID"] = npc_id, ["text"] = UnitName(npc), ["g"] = { info } };
+					else
+						info.qgs = {npc_id};
+						info.name = UnitName(npc);
+					end
+					info.faction = UnitFactionGroup(npc);
+				end
+				
+				-- Bubble Up the Maps
+				local mapInfo;
+				repeat
+					mapInfo = C_Map.GetMapInfo(mapID);
+					if mapInfo then
+						info = { ["mapID"] = mapInfo.mapID, ["g"] = { info } };
+						mapID = mapInfo.parentMapID
+					end
+				until not mapInfo or not mapID;
+				
+				self:MergeObject(self.data.g, self:CreateObject(info));
+				self:MergeObject(self.rawData, info);
+				self:Update();
+			end
+			
+		end);
+		self:RegisterEvent("PLAYER_LOGIN");
+		self:RegisterEvent("QUEST_DETAIL");
+		self:RegisterEvent("QUEST_LOOT_RECEIVED");
+		self:RegisterEvent("TRADE_SKILL_LIST_UPDATE");
+		self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+		self:RegisterEvent("NEW_WMO_CHUNK");
+		--self:RegisterAllEvents();
+	end
+	
+	-- Update the window and all of its row data
+	if self.data.OnUpdate then self.data.OnUpdate(self.data); end
+	for i,g in ipairs(self.data.g) do
+		if g.OnUpdate then g.OnUpdate(g); end
+	end
+	UpdateWindow(self, true);
+end):Show();
+--]]
 app:GetWindow("CurrentInstance");
 app:GetWindow("RaidAssistant", UIParent, function(self)
 	if not self.initialized then
@@ -8052,6 +8445,7 @@ app:RegisterEvent("BOSS_KILL");
 app:RegisterEvent("PLAYER_LOGIN");
 app:RegisterEvent("VARIABLES_LOADED");
 app:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+app:RegisterEvent("NEW_WMO_CHUNK");
 app:RegisterEvent("TOYS_UPDATED");
 app:RegisterEvent("TRADE_SKILL_LIST_UPDATE");
 app:RegisterEvent("TRADE_SKILL_SHOW");
@@ -9048,58 +9442,24 @@ app.events.VARIABLES_LOADED = function()
 		end
 		return mapID;
 	end
-	app.BFA = select(4, GetBuildInfo()) >= 80000;	-- If this is for BFA, run the BFA code, otherwise the Legion/Legacy code.
-	if app.BFA then
-		-- BFA specific code!
-		app.SetPortraitTexture = _G["SetPortraitTextureFromCreatureDisplayID"];
-		app.GetCurrentMapID = function()
-			local uiMapID = C_Map.GetBestMapForUnit("player");
-			
-			-- Onyxia's Lair fix
-			local text_to_mapID = app.L("ZONE_TEXT_TO_MAP_ID");
-			local otherMapID = text_to_mapID[GetRealZoneText()] or text_to_mapID[GetSubZoneText()];
-			if otherMapID then uiMapID = otherMapID; end
-			
-			-- print("Current UI Map ID: ", uiMapID);
-			return uiMapID;--app.BFAToLegionMapID(uiMapID);
-		end
-		app.GetMapName = function(mapID)
-			if mapID and mapID > 0 then
-				local info = C_Map.GetMapInfo(mapID);--app.LegionToBFAMapID(mapID));
-				return (info and info.name) or ("Map ID #" .. mapID);
-			else
-				return "Map ID #???";
-			end
-		end
-	else
-		-- Legion / Legacy code!
-		app.SetPortraitTexture = _G["SetPortraitTexture"];
-		app.GetCurrentMapID = function()
-			-- Cache the original map ID.
-			local originalMapID = GetCurrentMapAreaID();
-			SetMapToCurrentZone();
-			local mapID = GetCurrentMapAreaID();
-			
-			-- Onyxia's Lair fix
-			local text_to_mapID = app.L("ZONE_TEXT_TO_MAP_ID");
-			local otherMapID = text_to_mapID[GetRealZoneText()] or text_to_mapID[GetSubZoneText()];
-			if otherMapID then
-				mapID = otherMapID;
-			else
-				-- This is necessary because the map area ID for instances
-				-- is -1 when you initially enter them for a few moments. (not even a full second)
-				mapID = GetCurrentMapAreaID();
-			end
-			
-			SetMapByID(originalMapID);
-			return mapID;
-		end
-		app.GetMapName = function(mapID)
-			if mapID and mapID > 0 then
-				return GetMapNameByID(mapID) or ("Map ID #" .. mapID);
-			else
-				return "Map ID #???";
-			end
+	app.SetPortraitTexture = _G["SetPortraitTextureFromCreatureDisplayID"];
+	app.GetCurrentMapID = function()
+		local uiMapID = C_Map.GetBestMapForUnit("player");
+		
+		-- Onyxia's Lair fix
+		local text_to_mapID = app.L("ZONE_TEXT_TO_MAP_ID");
+		local otherMapID = text_to_mapID[GetRealZoneText()] or text_to_mapID[GetSubZoneText()];
+		if otherMapID then uiMapID = otherMapID; end
+		
+		-- print("Current UI Map ID: ", uiMapID);
+		return uiMapID;
+	end
+	app.GetMapName = function(mapID)
+		if mapID and mapID > 0 then
+			local info = C_Map.GetMapInfo(mapID);
+			return (info and info.name) or ("Map ID #" .. mapID);
+		else
+			return "Map ID #???";
 		end
 	end
 	
@@ -9386,6 +9746,7 @@ app.events.ACHIEVEMENT_EARNED = function(achievementID, ...)
 end
 app.events.SCENARIO_UPDATE = RefreshLocation;
 app.events.ZONE_CHANGED_NEW_AREA = RefreshLocation;
+app.events.NEW_WMO_CHUNK = RefreshLocation;
 app.events.ACTIVE_TALENT_GROUP_CHANGED = function()
 	app.Spec = GetLootSpecialization();
 	if not app.Spec or app.Spec == 0 then app.Spec = select(1, GetSpecializationInfo(GetSpecialization())); end

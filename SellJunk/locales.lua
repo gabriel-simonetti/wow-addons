@@ -30,6 +30,7 @@ L["Sold"] = "Sold"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Toggles the automatic selling of junk when the merchant window is opened."
 
+
 if GetLocale() == "ptBR" then
 
 L["<Item Link>"] = "<Link do Item>"
@@ -59,6 +60,7 @@ L["silver"] = "de prata"
 L["Sold"] = "Vendido"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Esse é o modo de segurança. Irá vender apenas 12 itens por vez. Em caso de erro, todos os itens podem ser comprados devolta do vendedor."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Alterna a venda automática de lixo quando a janela do comerciante é aberta."
+
 
 end
 
@@ -92,6 +94,7 @@ L["Sold"] = "Vendu"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Mode sauvegarde. Vendra que 12 objets maximum en une seule fois. En cas d'erreur, les objets pourront être rachetés au marchand."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Vendre automatiquement les objets gris lorsque la fenêtre du marchand est ouverte"
 
+
 end
 
 if GetLocale() == "deDE" then
@@ -123,6 +126,7 @@ L["silver"] = "Silber"
 L["Sold"] = "Verkauft:"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Abgesicherter Modus. Es werden nur 12 Gegenstände auf einmal verkauft, sodass diese bei Fehlern noch beim Händler zurückgekauft werden können."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Schaltet das automatische Verkaufen von Ramsch bei geöffnetem Händler-Fenster ein oder aus."
+
 
 end
 
@@ -156,6 +160,7 @@ L["Sold"] = "Venduti"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Questa è la modalità anti-errore. Verranno venduti solo 12 oggetti per volta. In caso di errore, potranno essere tutti ricomprati dal venditore."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Attiva la vendita dei grigi automatica quando viene aperta la finestra di un mercante."
 
+
 end
 
 if GetLocale() == "koKR" then
@@ -166,6 +171,8 @@ L["Added"] = "추가되었습니다."
 L["Automatically sell junk"] = "회색 아이템을 자동으로 상인에게 파시겠습니까?"
 L["Clear"] = "공통 지우기"
 L["Clear exceptions"] = "제외 항목 지우기"
+--[[Translation missing --]]
+--[[ L["Command accepts only itemlinks."] = ""--]] 
 L["copper"] = "코퍼"
 L["Destroyed"] = "파괴"
 L["Drag item into this window to add/remove it from exception list"] = "이 창에 아이템을 드래그 하면 제외목록으로 부터 추가/삭제됩니다."
@@ -187,9 +194,65 @@ L["Sold"] = "판매:"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "이것은 안전 모드입니다. 한번에 오직 12개의 아이템만 판매합니다. 만약 실수로 판매하더라도 해당 갯수 내에서는 상인에게 되살수 있습니다."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "상점 창이 열렸을 때 자동으로 회색 아이템을 판매하는 것을 키거나 끕니다."
 
+
 end
 
 if GetLocale() == "esMX" then
+
+--[[Translation missing --]]
+--[[ L["<Item Link>"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Add item"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Added"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Automatically sell junk"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Clear"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Clear exceptions"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Command accepts only itemlinks."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["copper"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Destroyed"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Drag item into this window to add/remove it from exception list"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Exceptions"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Exceptions succesfully cleared."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Gained"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["gold"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Prints itemlinks to chat, when automatically selling items."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Remove item"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Removed"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Removes all exceptions."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Sell Junk"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Sell max. 12 items"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Show gold gained"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Show 'item sold' spam"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Shows gold gained from selling trash."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["silver"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Sold"] = ""--]] 
+--[[Translation missing --]]
+--[[ L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = ""--]] 
+--[[Translation missing --]]
+--[[ L["Toggles the automatic selling of junk when the merchant window is opened."] = ""--]] 
 
 
 end
@@ -224,6 +287,7 @@ L["Sold"] = "Продано: "
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Безопасный режим. Продает не более 12 предметов.  В случае ошибки, любой из предметов может быть выкуплен у продавца обратно."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Включить или отключить автоматическую продажу мусора при открытии окна торговли."
 
+
 end
 
 if GetLocale() == "zhCN" then
@@ -255,6 +319,7 @@ L["silver"] = "银"
 L["Sold"] = "售出："
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "安全模式：一次只出售12件物品，卖出后可以重新买回错误出售的物品"
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "与商人交易时自动贩卖包裹中的垃圾物品"
+
 
 end
 
@@ -288,6 +353,7 @@ L["Sold"] = "Vendido"
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "Éste es el modo a prueba de fallos. Venderá sólo 12 artículos de una sola vez. En caso de equivocación, todos los artículos se pueden volver a comprar de nuevo al vendedor."
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "Vender automáticamente la basura cuando la ventana de un vendedor está abierta."
 
+
 end
 
 if GetLocale() == "zhTW" then
@@ -319,5 +385,6 @@ L["silver"] = "銀"
 L["Sold"] = "售出: "
 L["This is failsafe mode. Will sell only 12 items in one pass. In case of an error, all items can be bought back from vendor."] = "這是個安全模式。每次只販售最多12樣物品。當設定錯誤時可以從商人處買回所有物品"
 L["Toggles the automatic selling of junk when the merchant window is opened."] = "與商人交易時自動販賣包裹中的垃圾物品"
+
 
 end

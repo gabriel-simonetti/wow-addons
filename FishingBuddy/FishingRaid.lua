@@ -287,7 +287,7 @@ local function DisplayRaidFish()
 
 	local info = CurrentBoss()
 	if info then
-		local label = CHAT_MSG_RAID;
+		local label = LFG_LIST_FRIEND;
 		if not info[CurLoc] then
 			if CurLoc == 'esMX' then
 				info[CurLoc] = info.esES;

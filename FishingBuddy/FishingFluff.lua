@@ -34,25 +34,7 @@ local FluffEvents = {};
 local unTrack = nil;
 local resetPVP = nil;
 
-local LastSpecialBait = nil;
-local SpecialBait =
-{
-    [7] = {
-        110274,		-- Jawless Skulker Bait
-        110289,		-- Fat Sleeper Bait
-        110290,		-- Blind Lake Sturgeon Bait
-        110291,		-- Fire Ammonite Bait
-        110292,		-- Sea Scorpion Bait
-        110293,		-- Abyssal Gulper Eel Bait
-        110294,		-- Blackwater Whiptail Bait
-    },
-    [8] = {
-        139175,		-- Arcane lure
-    }
-};
-
 FluffEvents[FBConstants.FISHING_ENABLED_EVT] = function()
-    LastSpecialBait = nil;
     if ( FishingBuddy.GetSettingBool("FishingFluff")) then
         if ( GetSettingBool("FindFish") ) then
             local findid = FL:GetFindFishID();
@@ -94,7 +76,6 @@ FluffEvents[FBConstants.FISHING_DISABLED_EVT] = function(started, logout)
     end
     unTrack = nil;
     resetPVP = nil;
-    LastSpecialBait = nil;
 end
 
 FluffEvents[FBConstants.LOGIN_EVT] = function()
@@ -151,6 +132,7 @@ local function IsQuestFishing(item)
         end
     end
 end
+FishingBuddy.IsQuestFishing = IsQuestFishing
 
 local function SetupSpecialItem(id, info, fixsetting, fixloc)
     info.id = id
@@ -352,10 +334,12 @@ LevelingItems[133742] = {
     ["skill"] = true
 }
 
+FBConstants.UNDERLIGHT_ANGLER = 133755;
+
 local function CastAndThrow()
     if GSB("AutoOpen") then
         -- Only do this is we're using the Underlight Angler
-        if FL:GetMainHandItem(true) == 133755 then
+        if FL:GetMainHandItem(true) == FBConstants.UNDERLIGHT_ANGLER then
             for id,info in pairs(LevelingItems) do
                 if GetItemCount(id) > 0 then
                     local rank, _, skillmax, _ = FL:GetCurrentSkill();
@@ -432,204 +416,6 @@ CoinLures[138958] = {
     spell = 217837,
     usable = CanUseCoinLure,
     ignore = true,
-};
-
-local seascorpion = {
-    [947] = {
-        ["Darktide Strait"] = true,
-        ["The Evanescent Sea"] = true,
-        ["Karabor Harbor"] = true,
-        ["Tanaan Channel"] = true,
-    },
-    [949] = {
-        ["Colossal Depths"] = true,
-        ["Barrier Sea"] = true,
-        ["Iron Sea"] = true,
-        ["Orunai Coast"] = true,
-    },
-    [946] = {
-        ["Aarko's Estate"] = true,
-        ["Orunai Delta"] = true,
-        ["The South Sea"] = true,
-        ["Sha'tari Anchorage"] = true,
-        ["Shattrath Port Authority"] = true,
-        ["Beacon of Sha'tar"] = true,
-        ["The Sunset Shore"] = true,
-        ["Orunai Bay"] = true,
-        ["Orunai Coast"] = true,
-    },
-    [941] = {
-        ["Colossal Depths"] = true,
-        ["Frostboar Point"] = true,
-        ["Frostbite Deep"] = true,
-        ["Southwind Inlet"] = true,
-        ["Ata'gar Promontory"] = true,
-        ["Tor'goroth's Tooth"] = true,
-        ["Cold Snap Coast"] = true,
-        ["Zangar Sea"] = true,
-        ["Frostangler Bay"] = true,
-        ["Southwind Cliffs"] = true,
-        ["The Pale Cove"] = true,
-        ["Throm'var Landing"] = true,
-        ["Glacier Bay"] = true,
-        ["Ozgor's Launch"] = true,
-        ["Iron Sea"] = true,
-    },
-    [950] = {
-        ["The Colossal's Fist"] = true,
-        ["Lernaen Shore"] = true,
-        ["Zangar Shore"] = true,
-        ["Cerulean Lagoon"] = true,
-        ["Ironfist Harbor"] = true,
-        ["Zangar Sea"] = true,
-        ["Windroc Bay"] = true,
-        ["The South Sea"] = true,
-        ["The Cliffs of Highmaul"] = true,
-        ["Highmaul Harbor"] = true,
-    },
-    [970] = {
-        ["Tanaan Channel"] = true,
-        ["Barrier Sea"] = true,
-    },
-    [948] = {
-        ["Pinchwhistle Gearworks"] = true,
-        ["Echidnean Shelf"] = true,
-        ["The South Sea"] = true,
-        ["Wreck of the Mother Lode"] = true,
-        ["The Writhing Mire"] = true,
-        ["Southport"] = true,
-        ["Bloodmane Pridelands"] = true,
-        ["The Evanescent Sea"] = true,
-    },
-};
-
-local function CurrentSpecialBait()
-    local continent, _ = FL:GetCurrentMapContinent();
-    local baits = SpecialBait[continent];
-    if (baits) then
-        for _,id in ipairs(baits) do
-            local bait = FishingItems[id];
-            if (bait and FL:HasBuff(bait.spell)) then
-                return id;
-            end
-        end
-    end
-    -- return nil
-end
-
-local function CheckSpecialBait(info, buff, need)
-    local continent, _ = FL:GetCurrentMapContinent();
-    if (SpecialBait[continent]) then
-        if ( GSB("DraenorBaitMaintainOnly") and LastSpecialBait ) then
-            return true, LastSpecialBait;
-        else
-            if (not FL:HasBuff(info.spell)) then
-                return true, info.id;
-            end
-        end
-    end
-end
-
-local function VerifySpecialBait(info, checkscorpion)
-    if (not IsQuestFishing()) then
-        if (GSB("EasyLures") and GSB("DraenorBait")) then
-            local continent, _ = FL:GetCurrentMapContinent();
-            if ( GSB("DraenorBaitMaintainOnly") ) then
-                local baitid = CurrentSpecialBait();
-                if ( not baitid and LastSpecialBait ) then
-                    if (GetItemCount(LastSpecialBait) > 0) then
-                        return true;
-                    end
-                else
-                    LastSpecialBait = baitid;
-                end
-            elseif (continent == FBConstants.DRAENOR ) then
-                local mapId, subzone = FL:GetBaseZoneInfo();
-                if ( checkscorpion ) then
-                    return (seascorpion[mapId] and seascorpion[mapId][subzone]);
-                elseif ( mapId == info.mapId) then
-                    return not seascorpion[mapId][subzone];
-                end
-            end
-        end
-    end
-    -- return nil;
-end
-
-local function UseSeaScorpionBait(info)
-    return VerifySpecialBait(info, true);
-end
-
-
-local function UsableSpecialBait(info)
-    return VerifySpecialBait(info, false);
-end
-
--- Blind Lake Sturgeon, 158035
-FishingItems[110290] = {
-    ["enUS"] = "Blind Lake Sturgeon Bait",
-    spell = 158035,
-    mapId = 947,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[110293] = {
-    ["enUS"] = "Abyssal Gulper Eel Bait",
-    spell = 158038,
-    mapId = 948,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[110294] = {
-    ["enUS"] = "Blackwater Whiptail Bait",
-    spell = 158039,
-    mapId = 946,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[110289] = {
-    ["enUS"] = "Fat Sleeper Bait",
-    spell = 158034,
-    mapId = 950,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[110291] = {
-    ["enUS"] = "Fire Ammonite Bait",
-    spell = 158036,
-    mapId = 941,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[110274] = {
-    ["enUS"] = "Jawless Skulker Bait",
-    spell = 158031,
-    mapid = 949,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-FishingItems[128229] = {
-    ["enUS"] = "Felmouth Frenzy Bait",
-    spell = 188904,
-    mapId = 945,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
-};
-
-FishingItems[110292] = {
-    ["enUS"] = "Sea Scorpion Bait",
-    spell = 158037,
-    mapId = -1,
-    zone = "Non-inland water",
-    usable = UseSeaScorpionBait,
-    check = CheckSpecialBait,
-};
-
-FishingItems[139175] = {
-    ["enUS"] = "Arcane Lure",
-    spell = 218861,
-    usable = UsableSpecialBait,
-    check = CheckSpecialBait,
 };
 
 FishingBuddy.FishingItems = FishingItems;
@@ -728,6 +514,7 @@ local function UpdateItemOptions()
     FishingBuddy.FluffOptions = FluffOptions;
 end
 
+-- Turn items into options we can set
 local function SetupSpecialItems(items, fixsetting, fixloc, skipitem)
     for id,info in pairs(items) do
         info = SetupSpecialItem(id, info, fixsetting, fixloc);
@@ -760,9 +547,3 @@ FluffEvents[FBConstants.FIRST_UPDATE_EVT] = function()
 end
 
 FishingBuddy.RegisterHandlers(FluffEvents);
-
-if ( FishingBuddy.Commands["debug"] ) then
-    FishingBuddy.SeaScorpion = seascorpion;
-
-    FishingBuddy.CurrentSpecialBait = CurrentSpecialBait;
-end
